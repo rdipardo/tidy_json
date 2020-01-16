@@ -1,0 +1,54 @@
+build-gem: &build-gem
+      - type: cache-restore
+        name: Restore bundle cache
+        keys:
+          - tidy-json-{{ checksum "Gemfile.lock" }}
+          - tidy-json-
+
+      - run: bundle install --path vendor/bundle
+
+      - type: cache-save
+        name: Store bundle cache
+        key: tidy-json-{{ checksum "Gemfile.lock" }}
+        paths:
+          - vendor/bundle
+
+      - run: bundle exec rake
+
+
+version: 2
+
+jobs:
+  rb24:
+    docker:
+      - image: circleci/ruby:2.4.2
+    steps:
+      - checkout
+    <<: *build-gem
+  rb25:
+    docker:
+      - image: circleci/ruby:2.5
+    steps:
+      - checkout
+    <<: *build-gem
+  rb26:
+    docker:
+      - image: circleci/ruby:2.6
+    steps:
+      - checkout
+    <<: *build-gem
+  rb27:
+    docker:
+      - image: circleci/ruby:2.7
+    steps:
+      - checkout
+    <<: *build-gem
+
+workflows:
+ version: 2
+ multi_ruby_build:
+   jobs:
+     - rb24
+     - rb25
+     - rb26
+     - rb27
