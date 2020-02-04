@@ -27,13 +27,15 @@ class TidyJsonTest < Minitest::Test
   end
 
   def test_tidy_static
-    assert_equal(TidyJson.tidy(a: 'one', A: 'ONE', b: nil), "{\n\"a\": \"one\", \n\"A\": \"ONE\", \n\"b\": null\n}\n")
+    assert_equal(TidyJson.tidy(a: 'one', A: 'ONE', b: nil), "{\n  \"a\": \"one\", \n  \"A\": \"ONE\", \n  \"b\": null\n}\n")
     assert_equal(TidyJson.tidy({}).length, 4)
   end
 
   def test_tidy_instance
     assert_equal({}.to_tidy_json, "{\n}\n")
-    assert_equal(JsonableObject.new.to_tidy_json.length, 568)
+    assert_equal([].to_tidy_json, "[\n]\n")
+    assert_equal(Object.new.to_tidy_json, '')
+    assert_equal(JsonableObject.new.to_tidy_json.length, 650)
   end
 
   def test_stringify_instance
@@ -41,9 +43,9 @@ class TidyJsonTest < Minitest::Test
   end
 
   def test_writers
-    output = @@t.write_json(false)
+    output = @@t.write_json
     assert(File.exist?(output))
-    pretty_output = @@t.write_json(true, 'prettified')
+    pretty_output = @@t.write_json('prettified', tidy: true, indent: 4)
     assert(File.exist?(pretty_output))
   end
 end

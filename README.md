@@ -24,7 +24,7 @@ gem 'tidy_json'
 ```ruby
 require 'tidy_json'
 
-class Jsonable
+class JsonableObject
   attr_reader :a, :b
   def initialize
     @a = { a: 'uno', b: 'dos', c: ['I', 'II', 'III', ['i.', 'ii.', 'iii.', { 'ichi': "\u{4e00}", 'ni': "\u{4e8c}", 'san': "\u{4e09}", 'yon': "\u{56db}" }]] }
@@ -32,45 +32,42 @@ class Jsonable
   end
 end
 
-complex_object = Jsonable.new
-puts JSON.parse complex_object.stringify
+my_jsonable = JsonableObject.new
+
+puts JSON.parse my_jsonable.stringify
 # => {"class"=>"Jsonable", "a"=>{"a"=>"uno", "b"=>"dos", "c"=>["I", "II", "III", ["i.", "ii.", "iii.", {"ichi"=>"一", "ni"=>"二", "san"=>"三", "yon"=>"四"}]]}, "b"=>{"a"=>1, "b"=>["two", 3, "<abbr title=\"four\">IV</abbr>"]}}
 
-puts complex_object.to_tidy_json
+puts my_jsonable.to_tidy_json(indent: 8)
 # {
-# "class": "Jsonable",
-# "a":
-#  {
-#    "a": "uno",
-#    "b": "dos",
-#    "c":
-#      [
-#        "I",
-#        "II",
-#        "III",
-#          [
-#            "i.",
-#            "ii.",
-#            "iii.",
-#            {
-#              "ichi":"一",
-#              "ni":"二",
-#              "san":"三",
-#              "yon":"四"
-#            }
-#          ]
-#      ]
-#   },
-# "b":
-#   {
-#     "a": 1,
-#     "b":
-#       [
-#         "two",
-#         3,
-#         "<abbr title=\"four\">IV</abbr>"
-#       ]
-#    }
+#        "class": "JsonableObject",
+#        "a": {
+#                "a": "uno",
+#                "b": "dos",
+#                "c": [
+#                        "I",
+#                        "II",
+#                        "III",
+#                        [
+#                                "i.",
+#                                "ii.",
+#                                "iii.",
+#                                {
+#                                        "ichi": "一",
+#                                        "ni": "二",
+#                                        "san": "三",
+#                                        "yon": "四"
+#                                }
+#                        ]
+#                ]
+#        },
+#        "b": {
+#                "a": 1,
+#                "b": [
+#                        "two",
+#                        3,
+#                        "<abbr title=\"four\">IV</abbr>"
+#                ]
+#        }
 # }
 # => nil
 ```
@@ -81,7 +78,6 @@ puts complex_object.to_tidy_json
 - [json](https://rubygems.org/gems/json) ~> 2.2
 
 #### Building
-- [bundler](https://rubygems.org/gems/bundler) ~> 1.17
 - [minitest](https://rubygems.org/gems/minitest) ~> 5.0
 - [yard](https://rubygems.org/gems/yard) ~> 0.9
 

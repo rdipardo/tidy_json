@@ -4,9 +4,10 @@ build-gem: &build-gem
         keys:
           - tidy-json-{{ checksum "Gemfile.lock" }}
           - tidy-json-
-
-      - run: bundle install --path vendor/bundle
-
+      - run:
+          - gem update bundler
+          - bundle config set path 'vendor/bundle'
+          - bundle install --jobs=3 --retry=3
       - type: cache-save
         name: Store bundle cache
         key: tidy-json-{{ checksum "Gemfile.lock" }}
@@ -19,9 +20,12 @@ build-gem: &build-gem
 version: 2
 
 jobs:
+  rb23:
+    docker:
+      - image: circleci/ruby:2.3
   rb24:
     docker:
-      - image: circleci/ruby:2.4.2
+      - image: circleci/ruby:2.4
     steps:
       - checkout
     <<: *build-gem
@@ -48,6 +52,7 @@ workflows:
  version: 2
  multi_ruby_build:
    jobs:
+     - rb23
      - rb24
      - rb25
      - rb26
