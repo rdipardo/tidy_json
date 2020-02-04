@@ -22,10 +22,13 @@ version: 2
 jobs:
   rb23:
     docker:
-      - image: circleci/ruby:2.3
+      - image: circleci/ruby:2.3-stretch
+    steps:
+      - checkout
+    <<: *build-gem
   rb24:
     docker:
-      - image: circleci/ruby:2.4
+      - image: circleci/ruby:2.4-buster
     steps:
       - checkout
     <<: *build-gem

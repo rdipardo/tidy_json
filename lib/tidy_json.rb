@@ -255,7 +255,11 @@ module TidyJson
       # True if printing a nested array
       @need_offset = false
 
-      @indent = "\s" * (format_options[:indent] || 2)
+      indent_width = format_options[:indent]
+      good_width = false
+      good_width = indent_width.positive? if indent_width.instance_of?(Fixnum)
+
+      @indent = "\s" * (good_width ? indent_width : 2)
     end
 
     ##
