@@ -204,7 +204,7 @@ module TidyJson
               json_hash[key] << val
             end
 
-          # process uncollected data members
+          # process uncollected class members
           else
             # member a class object
             if val.instance_variables.first
@@ -243,7 +243,7 @@ module TidyJson
     attr_reader :indent
 
     # @!attribute indent
-    #   @return [String] the string of white space used by this +Formatter+ to indent members.
+    #   @return [String] the string of white space used by this +Formatter+ to indent object members.
 
     def initialize(format_options = {})
       ##
@@ -360,7 +360,7 @@ module TidyJson
     # Returns a JSON-appropriate string representation of +node+.
     #
     # @param node [#to_s] A visible attribute of a Ruby object.
-    # @param tabs [Fixnum] Tab width at which to start printing this node.
+    # @param tabs [Integer] Tab width at which to start printing this node.
     # @return [String] A formatted string representation of +node+.
     def node_to_str(node, tabs = 0)
       graft = ''
