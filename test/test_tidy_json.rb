@@ -50,19 +50,19 @@ class TidyJsonTest < Minitest::Test
   end
 
   def test_indent_bounds_checking
-    assert_equal Object.new.to_tidy_json(indent: '8'), ''
-    assert_equal 0.to_tidy_json(indent: -89), ''
-    assert_equal 3.1425.to_tidy_json(indent: 3.1425), ''
-    assert_equal ''.to_tidy_json(indent: 8.90999), ''
-    assert_equal 'Object'.to_tidy_json(indent: []), ''
-    assert_equal [].to_tidy_json(indent: -89), "[\n]\n"
+    assert_equal(Object.new.to_tidy_json(indent: '8'), '')
+    assert_equal('Object'.to_tidy_json(indent: []), '')
+    assert_equal(0.to_tidy_json(indent: -89), '')
+    assert_equal(3.1425.to_tidy_json(indent: 3.1425), '')
+    assert_equal(''.to_tidy_json(indent: +0), '')
+    assert_equal([].to_tidy_json(indent: -8.00009), "[\n]\n")
     assert_equal(JSON.parse(Object.new.stringify).to_tidy_json(indent: nil),
                  "{\n  \"class\": \"Object\"\n}\n")
     assert_equal(JSON.parse(''.stringify).to_tidy_json(indent: -16.009),
                  "{\n  \"class\": \"String\"\n}\n")
     assert_equal(JSON.parse({}.stringify).to_tidy_json(indent: '8'),
                  "{\n  \"class\": \"Hash\"\n}\n")
-    assert_equal(JSON.parse(1000.stringify).to_tidy_json(indent: '8'),
-                 "{\n  \"class\": \"Fixnum\"\n}\n")
+    assert_equal(JSON.parse(%w[k l m].stringify).to_tidy_json(indent: '<<'),
+                 "{\n  \"class\": \"Array\"\n}\n")
   end
 end

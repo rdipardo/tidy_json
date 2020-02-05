@@ -1,21 +1,26 @@
-build-gem: &build-gem
-      - type: cache-restore
-        name: Restore bundle cache
-        keys:
-          - tidy-json-{{ checksum "Gemfile.lock" }}
-          - tidy-json-
+build-gem: &build_gem
       - run:
-          - gem update bundler
-          - bundle config set path 'vendor/bundle'
-          - bundle install --jobs=3 --retry=3
-      - type: cache-save
-        name: Store bundle cache
-        key: tidy-json-{{ checksum "Gemfile.lock" }}
-        paths:
-          - vendor/bundle
-
-      - run: bundle exec rake
-
+          name: Update bundler
+          command: gem update bundler
+      - restore_cache:
+          keys:
+            - tidy-json-{{ checksum "Gemfile.lock" }}
+            - tidy-json-
+      - run:
+          name: Set bundler path
+          command: bundle config set path 'vendor/bundle'
+      - run:
+          name: Install gems
+          command: bundle install --jobs=3 --retry=3
+      - save_cache:
+          key: tidy-json-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+      - run:
+          name: Test gem
+          command: bundle exec rake
+      - store_test_results:
+          path: test_results
 
 version: 2
 
@@ -25,31 +30,31 @@ jobs:
       - image: circleci/ruby:2.3-stretch
     steps:
       - checkout
-    <<: *build-gem
+    <<: *build_gem
   rb24:
     docker:
       - image: circleci/ruby:2.4-buster
     steps:
       - checkout
-    <<: *build-gem
+    <<: *build_gem
   rb25:
     docker:
       - image: circleci/ruby:2.5
     steps:
       - checkout
-    <<: *build-gem
+    <<: *build_gem
   rb26:
     docker:
       - image: circleci/ruby:2.6
     steps:
       - checkout
-    <<: *build-gem
+    <<: *build_gem
   rb27:
     docker:
       - image: circleci/ruby:2.7
     steps:
       - checkout
-    <<: *build-gem
+    <<: *build_gem
 
 workflows:
  version: 2
