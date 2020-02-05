@@ -256,8 +256,10 @@ module TidyJson
       @need_offset = false
 
       indent_width = format_options[:indent]
-      good_width = false
-      good_width = indent_width.positive? if indent_width.instance_of?(Fixnum)
+
+      # don't use the more explicit #integer? method because it's defined for
+      # floating point numbers also
+      good_width = indent_width.positive? if indent_width.respond_to? :times
 
       @indent = "\s" * (good_width ? indent_width : 2)
     end

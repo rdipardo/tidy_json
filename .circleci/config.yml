@@ -1,67 +1,54 @@
-build-gem: &build_gem
-      - run:
-          name: Update bundler
-          command: gem update bundler
-      - restore_cache:
-          keys:
-            - tidy-json-{{ checksum "Gemfile.lock" }}
-            - tidy-json-
-      - run:
-          name: Set bundler path
-          command: bundle config set path 'vendor/bundle'
-      - run:
-          name: Install gems
-          command: bundle install --jobs=3 --retry=3
-      - save_cache:
-          key: tidy-json-{{ checksum "Gemfile.lock" }}
-          paths:
-            - vendor/bundle
-      - run:
-          name: Test gem
-          command: bundle exec rake
-      - store_test_results:
-          path: test_results
-
 version: 2
+references:
+  default: &default
+      steps:
+        - checkout
+        - run: gem update bundler
+        - restore_cache:
+            keys:
+              - tidy-json-{{ checksum "Gemfile.lock" }}
+              - tidy-json-
+        - run: bundle config set path 'vendor/bundle'
+        - run: bundle install --jobs=3 --retry=3
+        - save_cache:
+            key: tidy-json-{{ checksum "Gemfile.lock" }}
+            paths:
+              - vendor/bundle
+        - run:
+            name: Test gem
+            command: bundle exec rake
+        - run: mkdir $CIRCLE_WORKING_DIRECTORY/artifacts
+        - store_test_results:
+            path: $CIRCLE_WORKING_DIRECTORY/artifacts
 
 jobs:
   rb23:
     docker:
       - image: circleci/ruby:2.3-stretch
-    steps:
-      - checkout
-    <<: *build_gem
+    <<: *default
   rb24:
     docker:
       - image: circleci/ruby:2.4-buster
-    steps:
-      - checkout
-    <<: *build_gem
+    <<: *default
   rb25:
     docker:
       - image: circleci/ruby:2.5
-    steps:
-      - checkout
-    <<: *build_gem
+    <<: *default
   rb26:
     docker:
       - image: circleci/ruby:2.6
-    steps:
-      - checkout
-    <<: *build_gem
+    <<: *default
   rb27:
     docker:
       - image: circleci/ruby:2.7
-    steps:
-      - checkout
-    <<: *build_gem
+    <<: *default
 
 workflows:
- version: 2
- multi_ruby_build:
-   jobs:
-     - rb23
-     - rb24
-     - rb25
-     - rb26
-     - rb27
+  version: 2
+  test_all_rubies:
+    jobs:
+      - rb23
+      - rb24
+      - rb25
+      - rb26
+      - rb27
