@@ -6,12 +6,12 @@ references:
         - run: gem update bundler
         - restore_cache:
             keys:
-              - tidy-json-{{ checksum "Gemfile.lock" }}
+              - tidy-json-{{ checksum "Gemfile" }}
               - tidy-json-
         - run: bundle config set path 'vendor/bundle'
         - run: bundle install --jobs=3 --retry=3
         - save_cache:
-            key: tidy-json-{{ checksum "Gemfile.lock" }}
+            key: tidy-json-{{ checksum "Gemfile" }}
             paths:
               - vendor/bundle
         - run:
