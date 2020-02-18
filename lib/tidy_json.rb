@@ -74,7 +74,7 @@ module TidyJson
   # Writes a JSON representation of the sender object to the file specified by +out+.
   #
   # @param out [String] The destination filename.
-  # @param opts [Hash] Formatting options for this object's +#to_tidy_json+ method.
+  # @param opts [Hash] Formatting options for this object's +#to_tidy_json+ method, when called.
   #     [:tidy] whether or not the output should be pretty-printed
   #     [:indent] the number of white spaces to indent
   # @return [String, nil] The path to the written output file, if successful.
@@ -82,7 +82,16 @@ module TidyJson
     path = nil
 
     File.open("#{out}.json", 'w') do |f|
-      path = f << to_tidy_json(opts)
+      path =
+        f << if !instance_variables.empty?
+               if opts[:tidy] then to_tidy_json(opts)
+               else stringify
+                    end
+             else
+               if opts[:tidy] then to_tidy_json(opts)
+               else to_json
+                    end
+           end
     end
 
     path.path
@@ -245,6 +254,10 @@ module TidyJson
     # @!attribute indent
     #   @return [String] the string of white space used by this +Formatter+ to indent object members.
 
+    ##
+    # Returns a new instance of +Formatter+.
+    # @param format_options [Hash] Formatting options.
+    #     [:indent] the number of white spaces to indent. The default is 2.
     def initialize(format_options = {})
       ##
       # The number of times to reduce the left indent of a nested array's opening

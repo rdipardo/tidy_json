@@ -24,7 +24,7 @@ gem 'tidy_json'
 ```ruby
 require 'tidy_json'
 
-class JsonableObject
+class Jsonable
   attr_reader :a, :b
   def initialize
     @a = { a: 'uno', b: 'dos', c: ['I', 'II', 'III', ['i.', 'ii.', 'iii.', { 'ichi': "\u{4e00}", 'ni': "\u{4e8c}", 'san': "\u{4e09}", 'yon': "\u{56db}" }]] }
@@ -32,42 +32,42 @@ class JsonableObject
   end
 end
 
-my_jsonable = JsonableObject.new
+my_jsonable = Jsonable.new
 
 JSON.parse my_jsonable.stringify
 # => {"class"=>"Jsonable", "a"=>{"a"=>"uno", "b"=>"dos", "c"=>["I", "II", "III", ["i.", "ii.", "iii.", {"ichi"=>"一", "ni"=>"二", "san"=>"三", "yon"=>"四"}]]}, "b"=>{"a"=>1, "b"=>["two", 3, "<abbr title=\"four\">IV</abbr>"]}}
 
-puts my_jsonable.to_tidy_json(indent: 8)
+puts my_jsonable.to_tidy_json(indent: 4)
 # {
-#        "class": "JsonableObject",
-#        "a": {
-#                "a": "uno",
-#                "b": "dos",
-#                "c": [
-#                        "I",
-#                        "II",
-#                        "III",
-#                        [
-#                                "i.",
-#                                "ii.",
-#                                "iii.",
-#                                {
-#                                        "ichi": "一",
-#                                        "ni": "二",
-#                                        "san": "三",
-#                                        "yon": "四"
-#                                }
-#                        ]
-#                ]
-#        },
-#        "b": {
-#                "a": 1,
-#                "b": [
-#                        "two",
-#                        3,
-#                        "<abbr title=\"four\">IV</abbr>"
-#                ]
-#        }
+#     "class": "Jsonable",
+#     "a": {
+#        "a": "uno",
+#        "b": "dos",
+#        "c": [
+#            "I",
+#            "II",
+#            "III",
+#            [
+#                "i.",
+#                "ii.",
+#                "iii.",
+#                {
+#                    "ichi": "一",
+#                    "ni": "二",
+#                    "san": "三",
+#                    "yon": "四"
+#                }
+#            ]
+#        ]
+#    },
+#    "b": {
+#        "a": 1,
+#        "b": [
+#            "two",
+#            3,
+#            "<abbr title=\"four\">IV</abbr>"
+#        ]
+#    }
 # }
 # => nil
 ```

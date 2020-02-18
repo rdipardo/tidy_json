@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TidyJson # :nodoc:
   DEDICATION = "\n#{'.' * 50}\n#{'.' * 19} IN MEMORIAM #{'.' * 18}\n" \
                "#{'.' * 16} Michael Di Pardo #{'.' * 16}\n" \
@@ -6,5 +8,5 @@ module TidyJson # :nodoc:
                "#{'.' * 11} Please consider supporting #{'.' * 11}\n" \
                "#{'.' * 13} the MS Society of Canada #{'.' * 11}\n" \
                "#{'.' * 8} https://mssociety.ca/get-involved #{'.' * 7}\n" \
-               "#{'.' * 50}\n\n".freeze
+               "#{'.' * 50}\n\n"
 end
