@@ -27,13 +27,15 @@ class TidyJsonTest < Minitest::Test
   end
 
   def test_tidy_static
-    assert_equal(TidyJson.tidy(a: 'one', A: 'ONE', b: nil), "{\n\"a\": \"one\", \n\"A\": \"ONE\", \n\"b\": null\n}\n")
+    assert_equal(TidyJson.tidy(a: 'one', A: 'ONE', b: nil), "{\n  \"a\": \"one\", \n  \"A\": \"ONE\", \n  \"b\": null\n}\n")
     assert_equal(TidyJson.tidy({}).length, 4)
   end
 
   def test_tidy_instance
     assert_equal({}.to_tidy_json, "{\n}\n")
-    assert_equal(JsonableObject.new.to_tidy_json.length, 568)
+    assert_equal([].to_tidy_json, "[\n]\n")
+    assert_equal(Object.new.to_tidy_json, '')
+    assert_equal(JsonableObject.new.to_tidy_json.length, 650)
   end
 
   def test_stringify_instance
@@ -41,9 +43,26 @@ class TidyJsonTest < Minitest::Test
   end
 
   def test_writers
-    output = @@t.write_json(false)
+    output = @@t.write_json
     assert(File.exist?(output))
-    pretty_output = @@t.write_json(true, 'prettified')
+    pretty_output = @@t.write_json('prettified', tidy: true, indent: 4)
     assert(File.exist?(pretty_output))
+  end
+
+  def test_indent_bounds_checking
+    assert_equal(Object.new.to_tidy_json(indent: '8'), '')
+    assert_equal('Object'.to_tidy_json(indent: []), '')
+    assert_equal(0.to_tidy_json(indent: -89), '')
+    assert_equal(3.1425.to_tidy_json(indent: 3.1425), '')
+    assert_equal(''.to_tidy_json(indent: +0), '')
+    assert_equal([].to_tidy_json(indent: -8.00009), "[\n]\n")
+    assert_equal(JSON.parse(Object.new.stringify).to_tidy_json(indent: nil),
+                 "{\n  \"class\": \"Object\"\n}\n")
+    assert_equal(JSON.parse(''.stringify).to_tidy_json(indent: -16.009),
+                 "{\n  \"class\": \"String\"\n}\n")
+    assert_equal(JSON.parse({}.stringify).to_tidy_json(indent: '8'),
+                 "{\n  \"class\": \"Hash\"\n}\n")
+    assert_equal(JSON.parse(%w[k l m].stringify).to_tidy_json(indent: '<<'),
+                 "{\n  \"class\": \"Array\"\n}\n")
   end
 end

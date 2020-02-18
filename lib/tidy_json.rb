@@ -9,16 +9,19 @@ module TidyJson
   # Emits a pretty-printed JSON representation of the given +obj+.
   #
   # @param obj [Object] A Ruby object that can be parsed as JSON.
+  # @param opts [Hash] Formatting options.
+  #     [:indent] the number of white spaces to indent
   # @return [String] A pretty-printed JSON string.
-  def self.tidy(obj = {})
+  def self.tidy(obj = {}, opts = {})
+    formatter = Formatter.new(opts)
     str = ''
 
     if obj.instance_of?(Hash)
       str << "{\n"
 
       obj.each do |k, v|
-        str << "\"#{k}\": "
-        str << Serializer.format_node(v, obj)
+        str << formatter.indent << "\"#{k}\": "
+        str << formatter.format_node(v, obj)
       end
 
       str << "}\n"
@@ -27,7 +30,8 @@ module TidyJson
       str << "[\n"
 
       obj.each do |v|
-        str << Serializer.format_node(v, obj)
+        str << formatter.indent
+        str << formatter.format_node(v, obj)
       end
 
       str << "]\n"
@@ -37,19 +41,16 @@ module TidyJson
   end
 
   ##
-  # Like +TidyJson::tidy+, but callable by the sender object with the option *not* to pretty-print.
+  # Like +TidyJson::tidy+, but callable by the sender object.
   #
-  # @param pretty [Boolean] Whether or not the returned string should be pretty-printed.
+  # @param opts [Hash] Formatting options.
+  #     [:indent] the number of white spaces to indent
   # @return [String] A pretty-printed JSON string.
-  def to_tidy_json(pretty = true)
+  def to_tidy_json(opts = {})
     if !instance_variables.empty?
-      if pretty then TidyJson.tidy(JSON.parse(stringify))
-      else stringify
-      end
+      TidyJson.tidy(JSON.parse(stringify), opts)
     else
-      if pretty then TidyJson.tidy(self)
-      else to_json
-      end
+      TidyJson.tidy(self, opts)
     end
   end
 
@@ -70,16 +71,18 @@ module TidyJson
   end
 
   ##
-  # Writes a pretty-printed JSON representation of the sender object to the file specified by +out+.
+  # Writes a JSON representation of the sender object to the file specified by +out+.
   #
-  # @param pretty [Boolean] Whether or not the output should be pretty-printed.
-  # @param out [String] The destination filename. Defaults to <tt><obj_class_name>_<unix timestamp></tt>.json
+  # @param out [String] The destination filename.
+  # @param opts [Hash] Formatting options for this object's +#to_tidy_json+ method.
+  #     [:tidy] whether or not the output should be pretty-printed
+  #     [:indent] the number of white spaces to indent
   # @return [String, nil] The path to the written output file, if successful.
-  def write_json(pretty = true, out = "#{self.class.name}_#{Time.now.to_i}")
+  def write_json(out = "#{self.class.name}_#{Time.now.to_i}", opts = { tidy: false })
     path = nil
 
     File.open("#{out}.json", 'w') do |f|
-      path = f << to_tidy_json(pretty)
+      path = f << to_tidy_json(opts)
     end
 
     path.path
@@ -92,15 +95,6 @@ module TidyJson
   #
   # @api private
   class Serializer
-    ##
-    # The number of times to reduce the left margin of a nested array's opening
-    # bracket
-    @margins_to_backspace = 0
-
-    ##
-    # True if printing a nested array
-    @should_backspace = false
-
     ##
     # Searches +obj+ to a *maximum* depth of 2 for readable attributes,
     # storing them as key-value pairs in +json_hash+.
@@ -210,7 +204,7 @@ module TidyJson
               json_hash[key] << val
             end
 
-          # process uncollected data members
+          # process uncollected class members
           else
             # member a class object
             if val.instance_variables.first
@@ -238,6 +232,37 @@ module TidyJson
       json_hash
     end
     # ~Serializer.serialize
+  end
+  # ~Serializer
+
+  ##
+  # A purpose-built JSON formatter.
+  #
+  # @api private
+  class Formatter
+    attr_reader :indent
+
+    # @!attribute indent
+    #   @return [String] the string of white space used by this +Formatter+ to indent object members.
+
+    def initialize(format_options = {})
+      ##
+      # The number of times to reduce the left indent of a nested array's opening
+      # bracket
+      @left_bracket_offset = 0
+
+      ##
+      # True if printing a nested array
+      @need_offset = false
+
+      indent_width = format_options[:indent]
+
+      # don't use the more explicit #integer? method because it's defined for
+      # floating point numbers also
+      good_width = indent_width.positive? if indent_width.respond_to? :times
+
+      @indent = "\s" * (good_width ? indent_width : 2)
+    end
 
     ##
     # Returns the given +node+ as pretty-printed JSON.
@@ -245,70 +270,71 @@ module TidyJson
     # @param node [#to_s] A visible attribute of +obj+.
     # @param obj [{Object => Object}, <Object>] The enumerable object containing +node+.
     # @return [String] A formatted string representation of +node+.
-    def self.format_node(node, obj)
+    def format_node(node, obj)
       str = ''
+      indent = @indent
 
       if node.instance_of?(Array)
-        str << "\n\t[\n"
+        str << "[\n"
 
         node.each do |elem|
           if elem.instance_of?(Hash)
-            str << "\t\t{\n"
+            str << "#{(indent * 2)}{\n"
 
             elem.each_with_index do |inner_h, h_idx|
-              str << "\t\t\t\"#{inner_h.first}\":"
-              str << node_to_str(inner_h.last)
+              str << "#{(indent * 3)}\"#{inner_h.first}\": "
+              str << node_to_str(inner_h.last, 4)
               str << ', ' unless h_idx == (elem.to_a.length - 1)
               str << "\n"
             end
 
-            str << "\t\t}"
+            str << "#{(indent * 2)}}"
             str << ',' unless node.index(elem) == (node.length - 1)
             str << "\n" unless node.index(elem) == (node.length - 1)
 
           else
 
             if elem.instance_of?(Array) && elem.any? { |e| e.instance_of?(Array) }
-              @margins_to_backspace = elem.take_while { |e| e.instance_of?(Array) }.size
+              @left_bracket_offset = elem.take_while { |e| e.instance_of?(Array) }.size
             end
 
-            str << "\t\t"
+            str << (indent * 2)
             str << node_to_str(elem)
             str << ",\n" unless node.index(elem) == (node.length - 1)
           end
         end
 
-        str << "\n\t]\n"
+        str << "\n#{indent}]\n"
 
       elsif node.instance_of?(Hash)
-        str << "\n\t{\n"
+        str << "{\n"
 
         node.each_with_index do |h, idx|
           if h.last.instance_of?(Hash)
             key = if h.first.eql? ''
-                    "\t\t\"<##{h.last.class.name.downcase}>\":"
+                    "#{indent * 2}\"<##{h.last.class.name.downcase}>\": "
                   else
-                    "\t\t\"#{h.first}\":"
+                    "#{indent * 2}\"#{h.first}\": "
                   end
             str << key
-            str << "\n\t\t\t{\n"
+            str << "{\n"
 
             h.last.each_with_index do |inner_h, inner_h_idx|
-              str << "\t\t\t\t\"#{inner_h.first}\":"
+              str << "#{indent * 3}\"#{inner_h.first}\": "
               str << node_to_str(inner_h.last, 4)
               str << ",\n" unless inner_h_idx == (h.last.to_a.length - 1)
             end
 
-            str << "\n\t\t\t}"
+            str << "\n#{indent * 2}}"
           else
-            str << "\t\t\"#{h.first}\": "
+            str << "#{indent * 2}\"#{h.first}\": "
             str << node_to_str(h.last)
           end
 
           str << ",\n" unless idx == (node.to_a.length - 1)
         end
 
-        str << "\n\t}"
+        str << "\n#{indent}}"
         str << ', ' unless (obj.length <= 1) || \
                            ((obj.length > 1) && \
                            (obj.instance_of?(Hash) && \
@@ -326,50 +352,54 @@ module TidyJson
         str << "\n"
       end
 
-      str.gsub(/\t+[\n\r]+/, '').gsub(/\}\,+/, '},').gsub(/\]\,+/, '],')
+      str.gsub(/(#{indent})+[\n\r]+/, '').gsub(/\}\,+/, '},').gsub(/\]\,+/, '],')
     end
-    # ~Serializer.format_node
+    # ~Formatter#format_node
 
     ##
     # Returns a JSON-appropriate string representation of +node+.
     #
     # @param node [#to_s] A visible attribute of a Ruby object.
-    # @param tabs [Fixnum] Tab width at which to start printing this node.
+    # @param tabs [Integer] Tab width at which to start printing this node.
     # @return [String] A formatted string representation of +node+.
-    def self.node_to_str(node, tabs = 0)
+    def node_to_str(node, tabs = 0)
       graft = ''
-
       tabs += 2 if tabs.zero?
-      if @should_backspace
+
+      if @need_offset
         tabs -= 1
-        @margins_to_backspace -= 1
+        @left_bracket_offset -= 1
       end
 
-      if node.nil? then graft << 'null'
-      elsif node.instance_of?(Hash)
+      indent = @indent * (tabs / 2)
 
+      if node.nil? then graft << 'null'
+
+      elsif node.instance_of?(Hash)
         format_node(node, node).scan(/.*$/) do |n|
-          graft << "\n" << ("\t" * tabs).to_s << n
+          graft << "\n" << indent << n
         end
 
       elsif node.instance_of?(Array)
-        @should_backspace = @margins_to_backspace.positive?
+        @need_offset = @left_bracket_offset.positive?
 
         format_node(node, {}).scan(/.*$/) do |n|
-          graft << "\n" << ("\t" * tabs).to_s << n
+          graft << "\n" << indent << n
         end
 
       elsif !node.instance_of?(String) then graft << node.to_s
+
       else graft << "\"#{node.gsub(/\"/, '\\"')}\""
       end
 
-      graft.rstrip
+      graft.strip
     end
-    # ~Serializer.node_to_str
+    # ~Formatter.node_to_str
   end
-  # ~Serializer
+  # ~Formatter
 
   private_constant :Serializer
+  private_constant :Formatter
 end
 # ~TidyJson
 
