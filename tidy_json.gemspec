@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.authors     = ['Robert Di Pardo']
   spec.email       = 'rdipardo0520@conestogac.on.ca'
   spec.homepage    = 'https://github.com/rdipardo/tidy_json'
-  spec.metadata    = { 'documentation_uri' => 'https://rubydoc.org/github/rdipardo/tidy_json/master' }
+  spec.metadata    = { 'documentation_uri' => 'https://rubydoc.org/github/rdipardo/tidy_json' }
   spec.license     = 'MIT'
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     ['.yardopts'].concat(`git ls-files -z`.split("\x0").reject { |f| f.match(/^(\.[\w+\.]+|test|spec|features)/) })

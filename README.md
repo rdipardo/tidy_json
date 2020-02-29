@@ -37,37 +37,37 @@ my_jsonable = Jsonable.new
 JSON.parse my_jsonable.stringify
 # => {"class"=>"Jsonable", "a"=>{"a"=>"uno", "b"=>"dos", "c"=>["I", "II", "III", ["i.", "ii.", "iii.", {"ichi"=>"一", "ni"=>"二", "san"=>"三", "yon"=>"四"}]]}, "b"=>{"a"=>1, "b"=>["two", 3, "<abbr title=\"four\">IV</abbr>"]}}
 
-puts my_jsonable.to_tidy_json(indent: 8)
+puts my_jsonable.to_tidy_json(indent: 4)
 # {
-#        "class": "Jsonable",
-#        "a": {
-#                "a": "uno",
-#                "b": "dos",
-#                "c": [
-#                        "I",
-#                        "II",
-#                        "III",
-#                        [
-#                                "i.",
-#                                "ii.",
-#                                "iii.",
-#                                {
-#                                        "ichi": "一",
-#                                        "ni": "二",
-#                                        "san": "三",
-#                                        "yon": "四"
-#                                }
-#                        ]
-#                ]
-#        },
-#        "b": {
-#                "a": 1,
-#                "b": [
-#                        "two",
-#                        3,
-#                        "<abbr title=\"four\">IV</abbr>"
-#                ]
-#        }
+#     "class": "Jsonable",
+#     "a": {
+#        "a": "uno",
+#        "b": "dos",
+#        "c": [
+#            "I",
+#            "II",
+#            "III",
+#            [
+#                "i.",
+#                "ii.",
+#                "iii.",
+#                {
+#                    "ichi": "一",
+#                    "ni": "二",
+#                    "san": "三",
+#                    "yon": "四"
+#                }
+#            ]
+#        ]
+#    },
+#    "b": {
+#        "a": 1,
+#        "b": [
+#            "two",
+#            3,
+#            "<abbr title=\"four\">IV</abbr>"
+#        ]
+#    }
 # }
 # => nil
 ```
