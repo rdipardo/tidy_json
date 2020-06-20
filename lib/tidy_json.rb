@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 require 'json'
 require_relative 'tidy_json/version'
 
@@ -9,11 +11,12 @@ module TidyJson
   # Emits a pretty-printed JSON representation of the given +obj+.
   #
   # @param obj [Object] A Ruby object that can be parsed as JSON.
-  # @param opts [Hash] Formatting options.
-  #     [:indent] the number of white spaces to indent
+  # @param opts [Hash] Output format options.
+  # @option (see Formatter#initialize)
   # @return [String] A pretty-printed JSON string.
   def self.tidy(obj = {}, opts = {})
     formatter = Formatter.new(opts)
+    obj = sort_keys(obj) if formatter.sorted
     str = ''
 
     if obj.instance_of?(Hash)
@@ -37,14 +40,63 @@ module TidyJson
       str << "]\n"
     end
 
+    if (extra_comma = /(?<trail>,\s*[\]\}])$/.match(str))
+      str = str.sub(extra_comma[:trail],
+                    extra_comma[:trail].slice(1, str.length.pred))
+    end
+
     str
+  end
+
+  ##
+  # Returns the given +obj+ with keys is ascending order, to a *maximum* depth
+  # of 2.
+  #
+  # @param obj [Hash, Array<Hash>] A dictionary-like object or collection
+  #   thereof.
+  # @return [Hash, Array<Hash>] A copy of the given +obj+ with keys in
+  #   ascending order, or else an exact copy.
+  # @note When the +#keys+ method is not defined on +obj+ or (given a
+  #   collection) every element in +obj+, it's returned unchanged.
+  def self.sort_keys(obj = {})
+    return obj if obj.nil? || obj.empty? ||
+                  (obj.instance_of?(Array) &&
+                    !obj.all? { |e| e.respond_to? :keys })
+
+    sorted = {}
+    sorter = lambda { |data, ret_val|
+      data.keys.sort.each do |k|
+        ret_val[k.to_sym] = if data[k].instance_of? Hash
+                              sorter.call(data[k], {})
+                            else
+                              data[k]
+                            end
+      end
+
+      return ret_val
+    }
+
+    if obj.instance_of? Array
+      temp = {}
+      sorted = []
+
+      (obj.sort_by { |h| h.keys.first }).each_with_index do |h, idx|
+        temp[idx] = sorter.call(h, {})
+      end
+
+      temp.keys.each { |k| sorted << temp[k] }
+    else
+      sorted = sorter.call(obj, {})
+    end
+
+    sorted
   end
 
   ##
   # Like +TidyJson::tidy+, but callable by the sender object.
   #
-  # @param opts [Hash] Formatting options.
-  #     [:indent] the number of white spaces to indent
+  # @param opts [Hash] Output format options.
+  # @option (see Formatter#initialize)
   # @return [String] A pretty-printed JSON string.
   def to_tidy_json(opts = {})
     if !instance_variables.empty?
@@ -71,14 +123,17 @@ module TidyJson
   end
 
   ##
-  # Writes a JSON representation of the sender object to the file specified by +out+.
+  # Writes a JSON representation of the sender object to the file specified by
+  # +out+.
   #
   # @param out [String] The destination filename.
-  # @param opts [Hash] Formatting options for this object's +#to_tidy_json+ method, when called.
-  #     [:tidy] whether or not the output should be pretty-printed
-  #     [:indent] the number of white spaces to indent
+  # @param opts [Hash] Output format options.
+  # @option (see Formatter#initialize)
+  # @option opts [Boolean] :tidy (false) Whether or not the output should be
+  #   pretty-printed.
   # @return [String, nil] The path to the written output file, if successful.
-  def write_json(out = "#{self.class.name}_#{Time.now.to_i}", opts = { tidy: false })
+  def write_json(out = "#{self.class.name}_#{Time.now.to_i}",
+                 opts = { tidy: false })
     path = nil
 
     File.open("#{out}.json", 'w') do |f|
@@ -86,12 +141,12 @@ module TidyJson
         f << if !instance_variables.empty?
                if opts[:tidy] then to_tidy_json(opts)
                else stringify
-                    end
+               end
              else
                if opts[:tidy] then to_tidy_json(opts)
                else to_json
-                    end
-           end
+               end
+             end
     end
 
     path.path
@@ -105,8 +160,8 @@ module TidyJson
   # @api private
   class Serializer
     ##
-    # Searches +obj+ to a *maximum* depth of 2 for readable attributes,
-    # storing them as key-value pairs in +json_hash+.
+    # Searches +obj+ to a *maximum* depth of 2 for readable attributes, storing
+    # them as key-value pairs in +json_hash+.
     #
     # @param obj [Object] A Ruby object that can be parsed as JSON.
     # @param json_hash [{String,Symbol => #to_s}] Accumulator.
@@ -130,7 +185,7 @@ module TidyJson
             nested = nil
 
             val.each.any? do |k, v|
-              if v.instance_variables.first
+              unless v.instance_variables.empty?
                 nested_key = k
                 nested = v
               end
@@ -141,7 +196,8 @@ module TidyJson
             if nested
               pos = val.keys.select { |k| k === nested_key }.first.to_sym
               nested.instance_variables.each do
-                json_hash[key][pos] = serialize(nested, class: nested.class.name)
+                json_hash[key][pos] = serialize(nested,
+                                                class: nested.class.name)
               end
             end
 
@@ -152,50 +208,52 @@ module TidyJson
             val.each do |elem|
               i = val.index(elem)
 
-              # multi-dimensional array
+              # member is a multi-dimensional array
               if elem.instance_of?(Array)
                 nested = []
                 elem.each do |e|
                   j = elem.index(e)
 
                   # nested array element is a class object
-                  if e.instance_variables.first
+                  if !e.instance_variables.empty?
                     json_hash[key][j] = { class: e.class.name }
 
                     # recur over the contained object
                     serialize(e, json_hash[key][j])
-                  else
-                    # some kind of collection?
-                    if e.respond_to? :each
-                      temp = []
-                      e.each { |el| temp << el }
-                      nested << temp
-                    else nested << e
-                    end
+
+                  # some kind of collection?
+                  elsif e.respond_to?(:each)
+                    temp = []
+                    e.each { |el| temp << el }
+                    nested << temp
+
+                  # primitive type
+                  else nested << e
                   end
                 end
                 # ~iteration of nested array elements
 
                 json_hash[key] << nested
 
+              # member is a flat array
               else
-                # 1-D array of class objects
-                if elem.instance_variables.first
+                # class object?
+                if !elem.instance_variables.empty?
                   json_hash[key] << { class: elem.class.name }
                   serialize(elem, json_hash[key][i])
-                else
-                  # element of primitive type (or Array, or Hash):
-                  # leverage 1:1 mapping of Hash:object
-                  if elem.instance_of?(Hash) then json_hash[key] = val
-                  else
-                    # some kind of collection
-                    if elem.respond_to? :each
-                      temp = []
-                      elem.each { |e| temp << e }
-                      json_hash[key] << temp
-                    else json_hash[key] << elem
-                    end
-                  end
+
+                # leverage 1:1 mapping of Hash:object
+                elsif elem.instance_of?(Hash)
+                  json_hash[key] = val
+
+                # some kind of collection
+                elsif elem.respond_to?(:each)
+                  temp = []
+                  elem.each { |e| temp << e }
+                  json_hash[key] << temp
+
+                # primitive type
+                else json_hash[key] << elem
                 end
               end
             end
@@ -204,7 +262,7 @@ module TidyJson
           # process any nested class members, i.e., handle a recursive call
           # to Serializer.serialize
           elsif obj.index(val) || json_hash.key?(key)
-            if val.instance_variables.first
+            if !val.instance_variables.empty?
               class_elem = { class: val.class.name }
               json_hash[key] << class_elem
               k = json_hash[key].index(class_elem)
@@ -215,20 +273,20 @@ module TidyJson
 
           # process uncollected class members
           else
-            # member a class object
-            if val.instance_variables.first
+            # member is a class object
+            if !val.instance_variables.empty?
               json_hash[key] = { class: val.class.name }
               serialize(val, json_hash[key])
-            else
-              # member a hash element
-              if json_hash.key?(key) && \
-                 !json_hash[key].has_val?(val) && \
-                 json_hash[key].instance_of?(Hash)
 
-                json_hash[key][key] = val
-              else
-                json_hash[key] = val
-              end
+            # member belongs to a contained object
+            elsif json_hash.key?(key) &&
+                  !json_hash[key].has_val?(val) &&
+                  json_hash[key].instance_of?(Hash)
+
+              json_hash[key][key] = val
+
+            # primitive member
+            else json_hash[key] = val
             end
           end
         rescue NoMethodError
@@ -249,47 +307,62 @@ module TidyJson
   #
   # @api private
   class Formatter
-    attr_reader :indent
-
+    attr_reader :indent, :sorted
     # @!attribute indent
-    #   @return [String] the string of white space used by this +Formatter+ to indent object members.
+    # @return [String] the string of white space used by this +Formatter+ to
+    #   indent object members.
+
+    # @!attribute sorted
+    # @return [Boolean] whether or not this +Formatter+ sorts object members by
+    #   key name.
 
     ##
-    # Returns a new instance of +Formatter+.
-    # @param format_options [Hash] Formatting options.
-    #     [:indent] the number of white spaces to indent. The default is 2.
-    def initialize(format_options = {})
-      ##
-      # The number of times to reduce the left indent of a nested array's opening
-      # bracket
+    # @param opts [Hash] Formatting options.
+    # @option opts [[2,4,6,8,10,12]] :indent (2) An even number of white spaces
+    #   to indent each object member.
+    # @option opts [Boolean] :sort (false) Whether or not object members should
+    #   be sorted by key.
+    def initialize(opts = {})
+      # The number of times to reduce the left indent of a nested array's
+      # opening bracket
       @left_bracket_offset = 0
 
-      ##
       # True if printing a nested array
       @need_offset = false
 
-      indent_width = format_options[:indent]
-
-      # don't use the more explicit #integer? method because it's defined for
-      # floating point numbers also
-      good_width = indent_width.positive? if indent_width.respond_to? :times
-
-      @indent = "\s" * (good_width ? indent_width : 2)
+      # don't test for the more explicit :integer? method because it's defined
+      # for floating point numbers also
+      valid_width = opts[:indent].positive? \
+                    if opts[:indent].respond_to?(:times) &&
+                       (2..12).step(2).include?(opts[:indent])
+      @indent = "\s" * (valid_width ? opts[:indent] : 2)
+      @sorted = opts[:sort] || false
     end
 
     ##
     # Returns the given +node+ as pretty-printed JSON.
     #
     # @param node [#to_s] A visible attribute of +obj+.
-    # @param obj [{Object => Object}, <Object>] The enumerable object containing +node+.
+    # @param obj [{Object => #to_s}, <#to_s>] The enumerable object
+    #   containing +node+.
     # @return [String] A formatted string representation of +node+.
     def format_node(node, obj)
       str = ''
       indent = @indent
 
+      # BUG: arrays of identical elements will have a trailing comma since
+      # every element is the same as the last; a temporary hack in
+      # TidyJson::tidy attempts to correct for this
+      is_last = (obj.length <= 1) ||
+                ((obj.length > 1) &&
+                 (obj.instance_of?(Hash) &&
+                  (obj.key(obj.values.last) === obj.key(node))) ||
+                (obj.instance_of?(Array) && (obj.last === node)))
+
       if node.instance_of?(Array)
         str << "[\n"
 
+        # format array elements
         node.each do |elem|
           if elem.instance_of?(Hash)
             str << "#{(indent * 2)}{\n"
@@ -297,23 +370,26 @@ module TidyJson
             elem.each_with_index do |inner_h, h_idx|
               str << "#{(indent * 3)}\"#{inner_h.first}\": "
               str << node_to_str(inner_h.last, 4)
-              str << ', ' unless h_idx == (elem.to_a.length - 1)
+              # separate all but last element with a comma
+              str << ', ' unless h_idx == elem.to_a.length.pred
               str << "\n"
             end
 
             str << "#{(indent * 2)}}"
-            str << ',' unless node.index(elem) == (node.length - 1)
-            str << "\n" unless node.index(elem) == (node.length - 1)
+            str << ',' unless node.index(elem) == node.length.pred
+            str << "\n" unless node.index(elem) == node.length.pred
 
+          # element a primitive, or a nested array
           else
-
-            if elem.instance_of?(Array) && elem.any? { |e| e.instance_of?(Array) }
-              @left_bracket_offset = elem.take_while { |e| e.instance_of?(Array) }.size
+            is_nested_array = elem.instance_of?(Array) &&
+                              elem.any? { |e| e.instance_of?(Array) }
+            if is_nested_array
+              @left_bracket_offset = \
+                elem.take_while { |e| e.instance_of?(Array) }.size
             end
 
-            str << (indent * 2)
-            str << node_to_str(elem)
-            str << ",\n" unless node.index(elem) == (node.length - 1)
+            str << (indent * 2) << node_to_str(elem)
+            str << ",\n" unless node.index(elem) == node.length.pred
           end
         end
 
@@ -322,50 +398,48 @@ module TidyJson
       elsif node.instance_of?(Hash)
         str << "{\n"
 
+        # format elements as key-value pairs
         node.each_with_index do |h, idx|
+          # format values which are hashes themselves
           if h.last.instance_of?(Hash)
             key = if h.first.eql? ''
                     "#{indent * 2}\"<##{h.last.class.name.downcase}>\": "
                   else
                     "#{indent * 2}\"#{h.first}\": "
                   end
-            str << key
-            str << "{\n"
+            str << key << "{\n"
 
             h.last.each_with_index do |inner_h, inner_h_idx|
               str << "#{indent * 3}\"#{inner_h.first}\": "
               str << node_to_str(inner_h.last, 4)
-              str << ",\n" unless inner_h_idx == (h.last.to_a.length - 1)
+              # separate all but last pair with a comma
+              str << ",\n" unless inner_h_idx == h.last.to_a.length.pred
             end
 
             str << "\n#{indent * 2}}"
+
+          # format plain values
           else
-            str << "#{indent * 2}\"#{h.first}\": "
-            str << node_to_str(h.last)
+            str << "#{indent * 2}\"#{h.first}\": " << node_to_str(h.last)
           end
 
-          str << ",\n" unless idx == (node.to_a.length - 1)
+          str << ",\n" unless idx == node.to_a.length.pred
         end
 
         str << "\n#{indent}}"
-        str << ', ' unless (obj.length <= 1) || \
-                           ((obj.length > 1) && \
-                           (obj.instance_of?(Hash) && \
-                             (obj.key(obj.values.last) === obj.key(node))) || \
-                           (obj.instance_of?(Array) && (obj.last == node)))
+        str << ', ' unless is_last
         str << "\n"
 
+      # format primitive types
       else
         str << node_to_str(node)
-        str << ', ' unless (obj.length <= 1) || \
-                           ((obj.length > 1) && \
-                           (obj.instance_of?(Hash) && \
-                             (obj.key(obj.values.last) === obj.key(node))) || \
-                           (obj.instance_of?(Array) && (obj.last === node)))
+        str << ', ' unless is_last
         str << "\n"
       end
 
-      str.gsub(/(#{indent})+[\n\r]+/, '').gsub(/\}\,+/, '},').gsub(/\]\,+/, '],')
+      str.gsub(/(#{indent})+[\n\r]+/, '')
+         .gsub(/\}\,+/, '},')
+         .gsub(/\]\,+/, '],')
     end
     # ~Formatter#format_node
 
