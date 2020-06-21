@@ -9,6 +9,6 @@
 /tmp/
 .yardoc/**
 .vscode/**
-*rubocop*
 *.lock
 *.gem
+.rubocop.yml

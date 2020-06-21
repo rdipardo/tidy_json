@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 module TidyJson # :nodoc:
-  DEDICATION = "\n#{'.' * 50}\n#{'.' * 19} IN MEMORIAM #{'.' * 18}\n" \
-               "#{'.' * 16} Michael Di Pardo #{'.' * 16}\n" \
-               "#{'.' * 11} Feb 4, 1950 - Oct 28, 2019 #{'.' * 11}\n" \
-               "#{'.' * 50}\n" \
-               "#{'.' * 11} Please consider supporting #{'.' * 11}\n" \
-               "#{'.' * 13} the MS Society of Canada #{'.' * 11}\n" \
-               "#{'.' * 8} https://mssociety.ca/get-involved #{'.' * 7}\n" \
-               "#{'.' * 50}\n\n"
+  DEDICATION = "\n#{'.' * 52}\n" \
+               "#{'.' * 14} This gem is dedicated " \
+               "#{'.' * 15}\n" \
+               "#{'.' * 17} to the memory of #{'.' * 17}\n#{'.' * 52}\n" \
+               "#{'.' * 17} MICHAEL DI PARDO #{'.' * 17}\n#{'.' * 52}\n" \
+               "#{'.' * 12} Please consider supporting #{'.' * 12}\n" \
+               "#{'.' * 13} the MS Society of Canada #{'.' * 13}\n" \
+               "#{'.' * 52}\n" \
+               "#{'.' * 8} https://mssociety.ca/get-involved #{'.' * 9}\n" \
+               "#{'.' * 52}\n\n"
 end
