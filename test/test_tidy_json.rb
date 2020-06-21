@@ -81,12 +81,19 @@ class TidyJsonTest < Test::Unit::TestCase
   end
 
   def test_writers
-    output = @@t.write_json
+    json_array = []
+    assert_nothing_thrown '#stringify returns valid JSON' do
+      3.times { |_| json_array << JSON.parse(@@t.stringify) }
+    end
+
+    output = json_array.write_json
     assert(File.exist?(output))
     assert_nothing_thrown 'Raw JSON should be valid' do
       File.open(output, 'r') { |f| JSON.parse(f.read) }
     end
-    pretty_output = @@t.write_json('prettified', tidy: true, indent: 4)
+
+    pretty_output = \
+      json_array.write_json('prettified', tidy: true, sort: true, indent: 8)
     assert(File.exist?(pretty_output))
     assert_nothing_thrown 'Formatted JSON should be valid' do
       File.open(pretty_output, 'r') { |f| JSON.parse(f.read) }

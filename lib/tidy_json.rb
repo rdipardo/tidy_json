@@ -49,19 +49,20 @@ module TidyJson
   end
 
   ##
-  # Returns the given +obj+ with keys is ascending order, to a *maximum* depth
-  # of 2.
+  # Returns the given +obj+ with keys in ascending order to a maximum depth of
+  # 2.
   #
   # @param obj [Hash, Array<Hash>] A dictionary-like object or collection
   #   thereof.
-  # @return [Hash, Array<Hash>] A copy of the given +obj+ with keys in
-  #   ascending order, or else an exact copy.
-  # @note When the +#keys+ method is not defined on +obj+ or (given a
-  #   collection) every element in +obj+, it's returned unchanged.
+  # @return [Hash, Array<Hash>, Object] A copy of the given +obj+ with top- and
+  #   second-level keys in ascending order, or else an identical copy of +obj+.
+  # @note +obj+ is returned unchanged if: 1) it's not iterable; 2) it's an
+  #   empty collection; 3) any one of its elements is not hashable (and +obj+
+  #   is an array).
   def self.sort_keys(obj = {})
-    return obj if obj.nil? || obj.empty? ||
+    return obj if !obj.respond_to?(:each) || obj.empty? ||
                   (obj.instance_of?(Array) &&
-                    !obj.all? { |e| e.respond_to? :keys })
+                   !obj.all? { |e| e.respond_to? :keys })
 
     sorted = {}
     sorter = lambda { |data, ret_val|
@@ -149,7 +150,7 @@ module TidyJson
              end
     end
 
-    path.path
+    path&.path
   rescue IOError, RuntimeError, NoMethodError => e
     warn "#{__FILE__}.#{__LINE__}: #{e.message}"
   end
@@ -160,7 +161,7 @@ module TidyJson
   # @api private
   class Serializer
     ##
-    # Searches +obj+ to a *maximum* depth of 2 for readable attributes, storing
+    # Searches +obj+ to a maximum depth of 2 for readable attributes, storing
     # them as key-value pairs in +json_hash+.
     #
     # @param obj [Object] A Ruby object that can be parsed as JSON.
@@ -313,8 +314,8 @@ module TidyJson
     #   indent object members.
 
     # @!attribute sorted
-    # @return [Boolean] whether or not this +Formatter+ sorts object members by
-    #   key name.
+    # @return [Boolean] whether or not this +Formatter+ will sort object
+    #   members by key name.
 
     ##
     # @param opts [Hash] Formatting options.
@@ -338,6 +339,7 @@ module TidyJson
       @indent = "\s" * (valid_width ? opts[:indent] : 2)
       @sorted = opts[:sort] || false
     end
+    # ~Formatter#initialize
 
     ##
     # Returns the given +node+ as pretty-printed JSON.
@@ -350,14 +352,15 @@ module TidyJson
       str = ''
       indent = @indent
 
-      # BUG: arrays of identical elements will have a trailing comma since
-      # every element is the same as the last; a temporary hack in
-      # TidyJson::tidy attempts to correct for this
+      # BUG: arrays containing repeated elements may produce a trailing comma
+      # since Array#index returns to first match, so the last element will not
+      # have to last index; a temporary hack in TidyJson::tidy attempts to
+      # correct for this
       is_last = (obj.length <= 1) ||
-                ((obj.length > 1) &&
+                (obj.length > 1 &&
                  (obj.instance_of?(Hash) &&
                   (obj.key(obj.values.last) === obj.key(node))) ||
-                (obj.instance_of?(Array) && (obj.last === node)))
+                (obj.instance_of?(Array) && obj.size.pred == obj.index(node)))
 
       if node.instance_of?(Array)
         str << "[\n"
@@ -407,6 +410,7 @@ module TidyJson
                   else
                     "#{indent * 2}\"#{h.first}\": "
                   end
+
             str << key << "{\n"
 
             h.last.each_with_index do |inner_h, inner_h_idx|
@@ -463,6 +467,7 @@ module TidyJson
       if node.nil? then graft << 'null'
 
       elsif node.instance_of?(Hash)
+
         format_node(node, node).scan(/.*$/) do |n|
           graft << "\n" << indent << n
         end
@@ -481,7 +486,7 @@ module TidyJson
 
       graft.strip
     end
-    # ~Formatter.node_to_str
+    # ~Formatter#node_to_str
   end
   # ~Formatter
 
