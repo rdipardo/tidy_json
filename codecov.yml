@@ -1,10 +1,11 @@
 codecov:
   branch: testing
+  strict_yaml_branch: testing
   require_ci_to_pass: yes
 
 coverage:
   precision: 2
-  round: down
+  round: nearest
   range: "70...100"
 
 parsers:

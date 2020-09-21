@@ -101,6 +101,7 @@ puts my_jsonable.to_tidy_json(indent: 4, sort: true)
 [cci_build_status_badge]: https://circleci.com/gh/rdipardo/tidy_json.svg?style=svg
 [travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=testing
 [codecov_status]: https://codecov.io/gh/rdipardo/tidy_json
-[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/master/graph/badge.svg
+[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/testing/graph/badge.svg
 
 [gem_version_badge]: https://img.shields.io/gem/v/tidy_json
+

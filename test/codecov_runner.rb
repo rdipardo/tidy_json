@@ -8,8 +8,7 @@ if ENV['COVERAGE']
 
     if ENV['CI']
       require 'codecov'
-      formatter = SimpleCov::Formatter::Codecov.new
-      formatter.format(SimpleCov::ResultMerger.merged_result)
+      SimpleCov.formatter = SimpleCov::Formatter::Codecov
     end
   rescue LoadError
     warn 'Can''t locate coverage drivers! Try running: `gem install` first.'
