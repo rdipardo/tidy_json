@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'codecov_runner'
 require 'test/unit'
 require 'tidy_json'
 
@@ -8,10 +9,12 @@ require 'tidy_json'
 #
 class JsonableObject
   attr_reader(:h, :a)
+  attr_writer :c
 
   def initialize
     @h = { one: 'uno', two: 'dos', three: %w[eine zwei drei], cuatro: ['I', 'II', 'III', ['i.', 'ii.', 'iii.', 'iv.']] }
     @a = ['k', 'l', %w[M N O P], 'q', 'r', 's', [10, 456, ['<abbr title="Reel 2, Dialog Track 2">R2D2</abbr>', 'R', 2, 'D', ['two']]], 'u', 'v', 'x', 'y', %w[Z AB]]
+    @c = { 'visible': false }
   end
 end
 
@@ -73,11 +76,12 @@ class TidyJsonTest < Test::Unit::TestCase
     assert_equal({}.to_tidy_json, "{\n}\n")
     assert_equal([].to_tidy_json, "[\n]\n")
     assert_equal(Object.new.to_tidy_json, '')
-    assert_equal(JsonableObject.new.to_tidy_json.length, 650)
+    assert_equal(JsonableObject.new.to_tidy_json.length, 662)
   end
 
   def test_stringify_instance
-    assert_equal(@@t.stringify, "{\"class\":\"JsonableObject\",\"h\":{\"one\":\"uno\",\"two\":\"dos\",\"three\":[\"eine\",\"zwei\",\"drei\"],\"cuatro\":[\"I\",\"II\",\"III\",[\"i.\",\"ii.\",\"iii.\",\"iv.\"]],\"cinque\":{\"ichi\":\"\u{4e00}\",\"ni\":\"\u{4e8c}\",\"san\":\"\u{4e09}\",\"yon\":\"\u{56db}\"},\"sei\":{\"class\":\"JsonableObject\",\"h\":{\"one\":\"uno\",\"two\":\"dos\",\"three\":[\"eine\",\"zwei\",\"drei\"],\"cuatro\":[\"I\",\"II\",\"III\",[\"i.\",\"ii.\",\"iii.\",\"iv.\"]],\"five\":{\"class\":\"JsonableObject\",\"h\":{\"one\":\"uno\",\"two\":\"dos\",\"three\":[\"eine\",\"zwei\",\"drei\"],\"cuatro\":[\"I\",\"II\",\"III\",[\"i.\",\"ii.\",\"iii.\",\"iv.\"]]},\"a\":[\"k\",\"l\",[\"M\",\"N\",\"O\",\"P\"],\"q\",\"r\",\"s\",[10,456,[\"<abbr title=\\\"Reel 2, Dialog Track 2\\\">R2D2</abbr>\",\"R\",2,\"D\",[\"two\"]]],\"u\",\"v\",\"x\",\"y\",[\"Z\",\"AB\"]]}},\"a\":[\"k\",\"l\",[\"M\",\"N\",\"O\",\"P\"],\"q\",\"r\",\"s\",[10,456,[\"<abbr title=\\\"Reel 2, Dialog Track 2\\\">R2D2</abbr>\",\"R\",2,\"D\",[\"two\"]]],\"u\",\"v\",\"x\",\"y\",[\"Z\",\"AB\"]]}},\"a\":[{\"class\":\"JsonableObject\",\"h\":{\"one\":\"uno\",\"two\":\"dos\",\"three\":[\"eine\",\"zwei\",\"drei\"],\"cuatro\":[\"I\",\"II\",\"III\",[\"i.\",\"ii.\",\"iii.\",\"iv.\"]],\"five\":{\"class\":\"JsonableObject\",\"h\":{\"one\":\"uno\",\"two\":\"dos\",\"three\":[\"eine\",\"zwei\",\"drei\"],\"cuatro\":[\"I\",\"II\",\"III\",[\"i.\",\"ii.\",\"iii.\",\"iv.\"]]},\"a\":[\"k\",\"l\",[\"M\",\"N\",\"O\",\"P\"],\"q\",\"r\",\"s\",[10,456,[\"<abbr title=\\\"Reel 2, Dialog Track 2\\\">R2D2</abbr>\",\"R\",2,\"D\",[\"two\"]]],\"u\",\"v\",\"x\",\"y\",[\"Z\",\"AB\"]]}},\"a\":[\"k\",\"l\",[\"M\",\"N\",\"O\",\"P\"],\"q\",\"r\",\"s\",[10,456,[\"<abbr title=\\\"Reel 2, Dialog Track 2\\\">R2D2</abbr>\",\"R\",2,\"D\",[\"two\"]]],\"u\",\"v\",\"x\",\"y\",[\"Z\",\"AB\"]]},[13,14,15,5.6],\"k\",\"l\",[\"M\",\"N\",\"O\",\"P\"],\"q\",\"r\",\"s\",[10,456,[\"<abbr title=\\\"Reel 2, Dialog Track 2\\\">R2D2</abbr>\",\"R\",2,\"D\",[\"two\"]]],\"u\",\"v\",\"x\",\"y\",[\"Z\",\"AB\"]]}")
+    assert_equal(@@t.stringify,
+                 '{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]],"cinque":{"ichi":"一","ni":"二","san":"三","yon":"四"},"sei":{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]],"five":{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]]},"a":["k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null}},"a":["k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null}},"a":[{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]],"five":{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]]},"a":["k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null}},"a":["k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null},[13,14,15,5.6],"k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null}')
   end
 
   def test_writers
@@ -93,11 +97,15 @@ class TidyJsonTest < Test::Unit::TestCase
     end
 
     pretty_output = \
-      json_array.write_json('prettified', tidy: true, sort: true, indent: 8)
+      json_array.write_json('prettified', tidy: true, sort: true, indent: 4)
+
     assert(File.exist?(pretty_output))
+
     assert_nothing_thrown 'Formatted JSON should be valid' do
       File.open(pretty_output, 'r') { |f| JSON.parse(f.read) }
     end
+
+    assert_nil json_array.write_json('/invalid/file/name/')
   end
 
   def test_indent_bounds_checking

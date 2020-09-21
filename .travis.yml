@@ -14,5 +14,7 @@ rvm:
   - 2.5
   - 2.6
   - 2.7
+env:
+  - COVERAGE=1
 jobs:
   fast_finish: true

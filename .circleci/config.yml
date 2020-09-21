@@ -17,6 +17,9 @@ references:
               - vendor/bundle
         - run:
             name: Test gem
+            environment:
+              COVERAGE: 1
+              CI: 1
             command: bundle exec rake
 
 jobs:

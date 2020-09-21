@@ -1,6 +1,6 @@
 # TidyJson
 
-[![Build Status][travis_build_status_badge]][travis_build_status]  [![cci_build_status_badge]][cci_build_status]  ![Gem Version][gem_version_badge]
+[![Travis CI][travis_build_status_badge]][travis_build_status]  [![Circle CI][cci_build_status_badge]][cci_build_status]  [![codecov][codecov_badge]][codecov_status]  ![Gem Version][gem_version_badge]
 
 A mixin providing (recursive) JSON serialization and pretty printing.
 
@@ -100,4 +100,7 @@ puts my_jsonable.to_tidy_json(indent: 4, sort: true)
 [cci_build_status]: https://circleci.com/gh/rdipardo/tidy_json/tree/testing
 [cci_build_status_badge]: https://circleci.com/gh/rdipardo/tidy_json.svg?style=svg
 [travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=testing
+[codecov_status]: https://codecov.io/gh/rdipardo/tidy_json
+[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/master/graph/badge.svg
+
 [gem_version_badge]: https://img.shields.io/gem/v/tidy_json
