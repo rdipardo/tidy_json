@@ -12,3 +12,4 @@
 *.lock
 *.gem
 .rubocop.yml
+*codecov.yml
