@@ -8,24 +8,29 @@ require 'tidy_json'
 # Tests.
 #
 class JsonableObject
-  attr_reader(:h, :a)
+  attr_reader(:h, :a, :d, :e)
   attr_writer :c
 
   def initialize
     @h = { one: 'uno', two: 'dos', three: %w[eine zwei drei], cuatro: ['I', 'II', 'III', ['i.', 'ii.', 'iii.', 'iv.']] }
     @a = ['k', 'l', %w[M N O P], 'q', 'r', 's', [10, 456, ['<abbr title="Reel 2, Dialog Track 2">R2D2</abbr>', 'R', 2, 'D', ['two']]], 'u', 'v', 'x', 'y', %w[Z AB]]
     @c = { 'visible': false }
+    @d = []
+    @e = {}
   end
 end
 
 class TidyJsonTest < Test::Unit::TestCase
   @@t = JsonableObject.new
-  @@t2 = JsonableObject.new
-  @@t3 = JsonableObject.new
+  t2 = JsonableObject.new
+  t3 = JsonableObject.new
+
+  100.times { |_| t3.d << JsonableObject.new }
+  t2.h[:five] = t3
+
   @@t.h[:cinque] = { 'ichi' => "\u{4e00}", 'ni' => "\u{4e8c}", 'san' => "\u{4e09}", 'yon' => "\u{56db}" }
-  @@t.h[:sei] = @@t2
-  @@t2.h[:five] = @@t3
-  @@t.a.unshift([@@t2, 13, 14, 15, 5.6])
+  @@t.h[:sei] = t2
+  @@t.a.unshift([t2, 13, 14, 15, 5.6])
 
   def test_version_number
     refute_nil ::TidyJson::VERSION
@@ -76,12 +81,15 @@ class TidyJsonTest < Test::Unit::TestCase
     assert_equal({}.to_tidy_json, "{\n}\n")
     assert_equal([].to_tidy_json, "[\n]\n")
     assert_equal(Object.new.to_tidy_json, '')
-    assert_equal(JsonableObject.new.to_tidy_json.length, 662)
+    assert_equal(JsonableObject.new.to_tidy_json.length, 684)
   end
 
   def test_stringify_instance
-    assert_equal(@@t.stringify,
-                 '{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]],"cinque":{"ichi":"一","ni":"二","san":"三","yon":"四"},"sei":{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]],"five":{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]]},"a":["k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null}},"a":["k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null}},"a":[{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]],"five":{"class":"JsonableObject","h":{"one":"uno","two":"dos","three":["eine","zwei","drei"],"cuatro":["I","II","III",["i.","ii.","iii.","iv."]]},"a":["k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null}},"a":["k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null},[13,14,15,5.6],"k","l",["M","N","O","P"],"q","r","s",[10,456,["<abbr title=\"Reel 2, Dialog Track 2\">R2D2</abbr>","R",2,"D",["two"]]],"u","v","x","y",["Z","AB"]],"c":null}')
+    File.open("#{__dir__}/JsonableObject.json", 'r') do |json|
+      assert_equal(@@t.stringify, json.read.strip)
+    end
+  rescue Errno::ENOENT, Errno::EACCES, IOError => e
+    flunk "#{__FILE__}.#{__LINE__}: #{e.message}"
   end
 
   def test_writers

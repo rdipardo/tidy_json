@@ -40,14 +40,7 @@ module TidyJson
       str << "]\n"
     end
 
-    if (extra_comma = /(?<trail>,\s*[\]\}])$/.match(str))
-      str = str.sub(extra_comma[:trail],
-                    extra_comma[:trail]
-                    .slice(1, str.length.pred)
-                    .sub(/^\s/, ''))
-    end
-
-    str
+    formatter.trim str
   end
 
   ##
@@ -142,6 +135,7 @@ module TidyJson
     File.open("#{out}.json", 'w') do |f|
       path =
         f << if opts[:tidy] then to_tidy_json(opts)
+             elsif instance_variables.empty? then to_json
              else stringify
              end
     end
@@ -225,9 +219,8 @@ module TidyJson
                   elsif e.respond_to?(:each)
                     temp = []
                     e.each do |el|
-                      temp << if !el.instance_variables.empty?
-                                serialize(el, class: el.class.name)
-                              else el
+                      temp << if el.instance_variables.empty? then el
+                              else JSON.parse(el.stringify)
                               end
                     end
 
@@ -341,10 +334,6 @@ module TidyJson
       str = ''
       indent = @indent
 
-      # BUG: arrays containing repeated elements may produce a trailing comma
-      # since Array#index returns the first match, so the last element will not
-      # have to last index; a temporary hack in TidyJson::tidy attempts to
-      # correct for this
       is_last = (obj.length <= 1) ||
                 (obj.length > 1 &&
                   (obj.instance_of?(Array) &&
@@ -352,12 +341,14 @@ module TidyJson
                       (obj.size.pred == obj.rindex(node))))
 
       if node.instance_of?(Array)
-        str << "[\n"
+        str << '['
+        str << "\n" unless node.empty?
 
         # format array elements
         node.each do |elem|
           if elem.instance_of?(Hash)
-            str << "#{indent * 2}{\n"
+            str << "#{indent * 2}{"
+            str << "\n" unless elem.empty?
 
             elem.each_with_index do |inner_h, h_idx|
               str << "#{indent * 3}\"#{inner_h.first}\": "
@@ -366,7 +357,8 @@ module TidyJson
               str << "\n"
             end
 
-            str << "#{indent * 2}}"
+            str << "#{indent * 2}" unless elem.empty?
+            str << "}"
             str << ',' unless node.index(elem) == node.length.pred
             str << "\n" unless node.index(elem) == node.length.pred
 
@@ -384,10 +376,12 @@ module TidyJson
           end
         end
 
-        str << "\n#{indent}]\n"
+        str << "\n#{indent}" unless node.empty?
+        str << "]\n"
 
       elsif node.instance_of?(Hash)
-        str << "{\n"
+        str << '{'
+        str << "\n" unless node.empty?
 
         # format elements as key-value pairs
         node.each_with_index do |h, idx|
@@ -399,7 +393,8 @@ module TidyJson
                     "#{indent * 2}\"#{h.first}\": "
                   end
 
-            str << key << "{\n"
+            str << key << '{'
+            str << "\n" unless h.last.empty?
 
             h.last.each_with_index do |inner_h, inner_h_idx|
               str << "#{indent * 3}\"#{inner_h.first}\": "
@@ -407,7 +402,8 @@ module TidyJson
               str << ",\n" unless inner_h_idx == h.last.to_a.length.pred
             end
 
-            str << "\n#{indent * 2}}"
+            str << "\n#{indent * 2}" unless h.last.empty?
+            str << '}'
 
           # format scalar values
           else
@@ -417,7 +413,8 @@ module TidyJson
           str << ",\n" unless idx == node.to_a.length.pred
         end
 
-        str << "\n#{indent}}"
+        str << "\n#{indent}" unless node.empty?
+        str << '}'
         str << ', ' unless is_last
         str << "\n"
 
@@ -428,9 +425,9 @@ module TidyJson
         str << "\n"
       end
 
-      str.gsub(/(#{indent})+[\n\r]+/, '')
-         .gsub(/\}\,+/, '},')
-         .gsub(/\]\,+/, '],')
+      trim str.gsub(/(#{indent})+[\n\r]+/, '')
+              .gsub(/\}\,+/, '},')
+              .gsub(/\]\,+/, '],')
     end
     # ~Formatter#format_node
 
@@ -474,6 +471,22 @@ module TidyJson
       graft.strip
     end
     # ~Formatter#node_to_str
+
+    ##
+    # Removes any trailing comma from serialized object members.
+    #
+    # @param node [String] A serialized object member.
+    # @return [String] A copy of +node+ without a trailing comma.
+    def trim(node)
+      if (extra_comma = /(?<trail>,\s*[\]\}])$/.match(node))
+        node.sub(extra_comma[:trail],
+                 extra_comma[:trail]
+                 .slice(1, node.length.pred)
+                 .sub(/^\s/, ''))
+      else node
+      end
+    end
+    # ~Formatter#trim
   end
   # ~Formatter
 

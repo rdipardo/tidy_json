@@ -27,21 +27,26 @@ require 'tidy_json'
 class Jsonable
   attr_reader :a, :b
   def initialize
-    @a = { a: 'uno', f: ['I', 'II', 'III', ['i.', 'ii.', 'iii.', { 'ichi': "\u{4e00}", 'ni': "\u{4e8c}", 'san': "\u{4e09}", 'yon': "\u{56db}" }]], b: 'dos' }
-    @b = { z: { iv: 4, ii: 'duos', iii: 3, i: 'one' }, b: ['two', 3, '<abbr title="four">IV</abbr>'], a: 1, f: %w[x y z] }
+    @a = { a: 'uno', f: ['I', 'II', 'III', ['i.', 'ii.', 'iii.', { 'ichi': "\u{4e00}", 'ni': "\u{4e8c}", 'san': "\u{4e09}", 'yon': "\u{56db}" }]], c: {}, b: 'dos', e: [[]] }
+    @b = { z: { iv: 4, ii: 'duos', iii: 3, i: 'one' }, b: ['two', 3, '<abbr title="four">IV</abbr>'], a: 1, g: [{ none: [] }], f: %w[x y z] }
   end
 end
 
 my_jsonable = Jsonable.new
+# => #<Jsonable:0x0055b2aa0ff660 @a={:a=>"uno", :f=>["I", "II", "III", ["i.", "ii.", "iii.", {:ichi=>"一", :ni=>"二", :san=>"三", :yon=>"四"}]], :c=>{}, :b=>"dos", :e=>[[]]}, @b={:z=>{:iv=>4, :ii=>"duos", :iii=>3, :i=>"one"}, :b=>["two", 3, "<abbr title=\"four\">IV</abbr>"], :a=>1, :g=>[{:none=>[]}], :f=>["x", "y", "z"]}>
 
 JSON.parse my_jsonable.stringify
-# => {"class":"JsonableObject","a":{"a":"uno","f":["I","II","III",["i.","ii.","iii.",{"ichi":"一","ni":"二","san":"三","yon":"四"}]],"b":"dos"},"b":{"z":{"iv":4,"ii":"duos","iii":3,"i":"one"},"b":["two",3,"<abbr title=\"four\">IV</abbr>"],"a":1,"f":["x","y","z"]}}
+# => {"class"=>"Jsonable", "a"=>{"a"=>"uno", "f"=>["I", "II", "III", ["i.", "ii.", "iii.", {"ichi"=>"一", "ni"=>"二", "san"=>"三", "yon"=>"四"}]], "c"=>{}, "b"=>"dos", "e"=>[[]]}, "b"=>{"z"=>{"iv"=>4, "ii"=>"duos", "iii"=>3, "i"=>"one"}, "b"=>["two", 3, "<abbr title=\"four\">IV</abbr>"], "a"=>1, "g"=>[{"none"=>[]}], "f"=>["x", "y", "z"]}}
 
 puts my_jsonable.to_tidy_json(indent: 4, sort: true)
 # {
 #     "a": {
 #         "a": "uno",
 #         "b": "dos",
+#         "c": {},
+#         "e": [
+#             []
+#         ],
 #         "f": [
 #             "I",
 #             "II",
@@ -61,7 +66,7 @@ puts my_jsonable.to_tidy_json(indent: 4, sort: true)
 #     },
 #     "b": {
 #         "a": 1,
-#         "b": [
+#        "b": [
 #             "two",
 #             3,
 #             "<abbr title=\"four\">IV</abbr>"
@@ -71,6 +76,11 @@ puts my_jsonable.to_tidy_json(indent: 4, sort: true)
 #             "y",
 #             "z"
 #         ],
+#         "g": [
+#             {
+#                 "none": []
+#             }
+#         ],
 #         "z": {
 #             "i": "one",
 #             "ii": "duos",
@@ -78,7 +88,7 @@ puts my_jsonable.to_tidy_json(indent: 4, sort: true)
 #             "iv": 4
 #         }
 #     },
-#     "class": "JsonableObject"
+#     "class": "Jsonable"
 # }
 # => nil
 ```
