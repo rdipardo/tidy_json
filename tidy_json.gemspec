@@ -21,6 +21,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.required_ruby_version = Gem::Requirement.new('>= 2.3')
   spec.add_runtime_dependency 'json', '~> 2.2'
+  spec.add_development_dependency 'codecov', '~>0.2.5'
+  spec.add_development_dependency 'simplecov', '~> 0.17.1'
   spec.add_development_dependency 'test-unit', '~> 3.3'
   spec.add_development_dependency 'yard', '~> 0.9'
   spec.rdoc_options = ['-x test/*']

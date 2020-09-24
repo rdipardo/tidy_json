@@ -40,12 +40,7 @@ module TidyJson
       str << "]\n"
     end
 
-    if (extra_comma = /(?<trail>,\s*[\]\}])$/.match(str))
-      str = str.sub(extra_comma[:trail],
-                    extra_comma[:trail].slice(1, str.length.pred))
-    end
-
-    str
+    formatter.trim str
   end
 
   ##
@@ -100,10 +95,10 @@ module TidyJson
   # @option (see Formatter#initialize)
   # @return [String] A pretty-printed JSON string.
   def to_tidy_json(opts = {})
-    if !instance_variables.empty?
-      TidyJson.tidy(JSON.parse(stringify), opts)
-    else
+    if instance_variables.empty?
       TidyJson.tidy(self, opts)
+    else
+      TidyJson.tidy(JSON.parse(stringify), opts)
     end
   end
 
@@ -139,19 +134,14 @@ module TidyJson
 
     File.open("#{out}.json", 'w') do |f|
       path =
-        f << if !instance_variables.empty?
-               if opts[:tidy] then to_tidy_json(opts)
-               else stringify
-               end
-             else
-               if opts[:tidy] then to_tidy_json(opts)
-               else to_json
-               end
+        f << if opts[:tidy] then to_tidy_json(opts)
+             elsif instance_variables.empty? then to_json
+             else stringify
              end
     end
 
     path&.path
-  rescue IOError, RuntimeError, NoMethodError => e
+  rescue Errno::ENOENT, Errno::EACCES, IOError, RuntimeError, NoMethodError => e
     warn "#{__FILE__}.#{__LINE__}: #{e.message}"
   end
 
@@ -209,13 +199,16 @@ module TidyJson
             val.each do |elem|
               i = val.index(elem)
 
-              # member is a multi-dimensional array
-              if elem.instance_of?(Array)
+              # member is a multi-dimensional collection
+              if elem.respond_to?(:each)
                 nested = []
                 elem.each do |e|
-                  j = elem.index(e)
+                  j = if elem.respond_to?(:key)
+                        elem.key(e)
+                      else elem.index(e)
+                      end
 
-                  # nested array element is a class object
+                  # nested element is a class object
                   if !e.instance_variables.empty?
                     json_hash[key][j] = { class: e.class.name }
 
@@ -225,10 +218,15 @@ module TidyJson
                   # some kind of collection?
                   elsif e.respond_to?(:each)
                     temp = []
-                    e.each { |el| temp << el }
+                    e.each do |el|
+                      temp << if el.instance_variables.empty? then el
+                              else JSON.parse(el.stringify)
+                              end
+                    end
+
                     nested << temp
 
-                  # primitive type
+                  # scalar type
                   else nested << e
                   end
                 end
@@ -237,25 +235,12 @@ module TidyJson
                 json_hash[key] << nested
 
               # member is a flat array
-              else
-                # class object?
-                if !elem.instance_variables.empty?
-                  json_hash[key] << { class: elem.class.name }
-                  serialize(elem, json_hash[key][i])
+              elsif !elem.instance_variables.empty? # class object?
+                json_hash[key] << { class: elem.class.name }
+                serialize(elem, json_hash[key][i])
 
-                # leverage 1:1 mapping of Hash:object
-                elsif elem.instance_of?(Hash)
-                  json_hash[key] = val
-
-                # some kind of collection
-                elsif elem.respond_to?(:each)
-                  temp = []
-                  elem.each { |e| temp << e }
-                  json_hash[key] << temp
-
-                # primitive type
-                else json_hash[key] << elem
-                end
+              # scalar type
+              else json_hash[key] << elem
               end
             end
           # ~iteration of top-level array elements
@@ -273,22 +258,19 @@ module TidyJson
             end
 
           # process uncollected class members
-          else
-            # member is a class object
-            if !val.instance_variables.empty?
-              json_hash[key] = { class: val.class.name }
-              serialize(val, json_hash[key])
+          elsif !val.instance_variables.empty? # member is a class object
+            json_hash[key] = { class: val.class.name }
+            serialize(val, json_hash[key])
 
-            # member belongs to a contained object
-            elsif json_hash.key?(key) &&
-                  !json_hash[key].has_val?(val) &&
-                  json_hash[key].instance_of?(Hash)
+          # member belongs to a contained object
+          elsif json_hash.key?(key) &&
+                !json_hash[key].has_val?(val) &&
+                json_hash[key].instance_of?(Hash)
 
-              json_hash[key][key] = val
+            json_hash[key][key] = val
 
-            # primitive member
-            else json_hash[key] = val
-            end
+          # scalar member
+          else json_hash[key] = val
           end
         rescue NoMethodError
           # we expected an array to behave like a hash, or vice-versa
@@ -352,36 +334,35 @@ module TidyJson
       str = ''
       indent = @indent
 
-      # BUG: arrays containing repeated elements may produce a trailing comma
-      # since Array#index returns the first occurance; in this case the last
-      # element can't be detected by index; a temporary hack in TidyJson::tidy
-      # attempts to correct for this
       is_last = (obj.length <= 1) ||
                 (obj.length > 1 &&
-                 (obj.instance_of?(Hash) &&
-                  (obj.key(obj.values.last) === obj.key(node))) ||
-                (obj.instance_of?(Array) && obj.size.pred == obj.index(node)))
+                  (obj.instance_of?(Array) &&
+                    !(node === obj.first) &&
+                      (obj.size.pred == obj.rindex(node))))
 
       if node.instance_of?(Array)
-        str << "[\n"
+        str << '['
+        str << "\n" unless node.empty?
 
         # format array elements
         node.each do |elem|
           if elem.instance_of?(Hash)
-            str << "#{(indent * 2)}{\n"
+            str << "#{indent * 2}{"
+            str << "\n" unless elem.empty?
 
             elem.each_with_index do |inner_h, h_idx|
-              str << "#{(indent * 3)}\"#{inner_h.first}\": "
+              str << "#{indent * 3}\"#{inner_h.first}\": "
               str << node_to_str(inner_h.last, 4)
               str << ', ' unless h_idx == elem.to_a.length.pred
               str << "\n"
             end
 
-            str << "#{(indent * 2)}}"
+            str << "#{indent * 2}" unless elem.empty?
+            str << "}"
             str << ',' unless node.index(elem) == node.length.pred
             str << "\n" unless node.index(elem) == node.length.pred
 
-          # element a primitive, or a nested array
+          # element a scalar, or a nested array
           else
             is_nested_array = elem.instance_of?(Array) &&
                               elem.any? { |e| e.instance_of?(Array) }
@@ -395,10 +376,12 @@ module TidyJson
           end
         end
 
-        str << "\n#{indent}]\n"
+        str << "\n#{indent}" unless node.empty?
+        str << "]\n"
 
       elsif node.instance_of?(Hash)
-        str << "{\n"
+        str << '{'
+        str << "\n" unless node.empty?
 
         # format elements as key-value pairs
         node.each_with_index do |h, idx|
@@ -410,7 +393,8 @@ module TidyJson
                     "#{indent * 2}\"#{h.first}\": "
                   end
 
-            str << key << "{\n"
+            str << key << '{'
+            str << "\n" unless h.last.empty?
 
             h.last.each_with_index do |inner_h, inner_h_idx|
               str << "#{indent * 3}\"#{inner_h.first}\": "
@@ -418,9 +402,10 @@ module TidyJson
               str << ",\n" unless inner_h_idx == h.last.to_a.length.pred
             end
 
-            str << "\n#{indent * 2}}"
+            str << "\n#{indent * 2}" unless h.last.empty?
+            str << '}'
 
-          # format plain values
+          # format scalar values
           else
             str << "#{indent * 2}\"#{h.first}\": " << node_to_str(h.last)
           end
@@ -428,20 +413,21 @@ module TidyJson
           str << ",\n" unless idx == node.to_a.length.pred
         end
 
-        str << "\n#{indent}}"
+        str << "\n#{indent}" unless node.empty?
+        str << '}'
         str << ', ' unless is_last
         str << "\n"
 
-      # format primitive types
+      # scalars
       else
         str << node_to_str(node)
         str << ', ' unless is_last
         str << "\n"
       end
 
-      str.gsub(/(#{indent})+[\n\r]+/, '')
-         .gsub(/\}\,+/, '},')
-         .gsub(/\]\,+/, '],')
+      trim str.gsub(/(#{indent})+[\n\r]+/, '')
+              .gsub(/\}\,+/, '},')
+              .gsub(/\]\,+/, '],')
     end
     # ~Formatter#format_node
 
@@ -485,6 +471,22 @@ module TidyJson
       graft.strip
     end
     # ~Formatter#node_to_str
+
+    ##
+    # Removes any trailing comma from serialized object members.
+    #
+    # @param node [String] A serialized object member.
+    # @return [String] A copy of +node+ without a trailing comma.
+    def trim(node)
+      if (extra_comma = /(?<trail>,\s*[\]\}])$/.match(node))
+        node.sub(extra_comma[:trail],
+                 extra_comma[:trail]
+                 .slice(1, node.length.pred)
+                 .sub(/^\s/, ''))
+      else node
+      end
+    end
+    # ~Formatter#trim
   end
   # ~Formatter
 
