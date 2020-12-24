@@ -11,6 +11,6 @@ if ENV['COVERAGE']
       SimpleCov.formatter = SimpleCov::Formatter::Codecov
     end
   rescue LoadError
-    warn 'Can''t locate coverage drivers! Try running: `gem install` first.'
+    warn "Can't locate coverage drivers! Try running: `gem install` first."
   end
 end
