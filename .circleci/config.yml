@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 references:
   default: &default
       steps:
@@ -25,30 +25,64 @@ jobs:
   rb23:
     docker:
       - image: circleci/ruby:2.3-stretch
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
     <<: *default
   rb24:
     docker:
       - image: circleci/ruby:2.4-buster
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
     <<: *default
   rb25:
     docker:
-      - image: circleci/ruby:2.5
+      - image: circleci/ruby:2.5-buster
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
     <<: *default
   rb26:
     docker:
-      - image: circleci/ruby:2.6
+      - image: circleci/ruby:2.6-buster
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
     <<: *default
   rb27:
     docker:
-      - image: circleci/ruby:2.7
+      - image: circleci/ruby:2.7-buster
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
+    <<: *default
+  rb30:
+    docker:
+      - image: circleci/ruby:3.0-buster
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASSWORD
     <<: *default
 
 workflows:
-  version: 2
   test_all_rubies:
     jobs:
-      - rb23
-      - rb24
-      - rb25
-      - rb26
-      - rb27
+      - rb23:
+          context:
+            - docker-hub-creds
+      - rb24:
+          context:
+            - docker-hub-creds
+      - rb25:
+          context:
+            - docker-hub-creds
+      - rb26:
+          context:
+            - docker-hub-creds
+      - rb27:
+          context:
+            - docker-hub-creds
+      - rb30:
+          context:
+            - docker-hub-creds
