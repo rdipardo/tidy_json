@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.authors     = ['Robert Di Pardo']
   spec.email       = 'dipardo.r@gmail.com'
   spec.homepage    = 'https://github.com/rdipardo/tidy_json'
-  spec.metadata    = { 'documentation_uri' => 'https://rubydoc.org/github/rdipardo/tidy_json/master' }
+  spec.metadata    = { 'documentation_uri' => 'https://rubydoc.org/github/rdipardo/tidy_json' }
   spec.license     = 'MIT'
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     ['.yardopts'].concat(`git ls-files -z`.split("\x0").reject { |f| f.match(/^(\.[\w+\.]+|test|spec|features)/) })
@@ -20,9 +20,9 @@ Gem::Specification.new do |spec|
   spec.test_files = Dir['test/*']
   spec.require_paths = ['lib']
   spec.required_ruby_version = Gem::Requirement.new('>= 2.3')
-  spec.add_runtime_dependency 'json', '~> 2.2'
-  spec.add_development_dependency 'codecov', '~>0.2.5'
-  spec.add_development_dependency 'simplecov', '~> 0.17.1'
+  spec.add_runtime_dependency 'json', '~> 2.5'
+  spec.add_development_dependency 'codecov', '0.2.5'
+  spec.add_development_dependency 'simplecov', '~> 0.17'
   spec.add_development_dependency 'test-unit', '~> 3.3'
   spec.add_development_dependency 'yard', '~> 0.9'
   spec.rdoc_options = ['-x test/*']
