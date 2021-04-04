@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module TidyJson
-  VERSION = '0.3.0.pre'
+  VERSION = '0.4.0-pre'
 end

@@ -1,6 +1,6 @@
 # tidy_json
 
-![Gem Version][gem_version_badge]  ![gem_downloads]  [![Travis CI][travis_build_status_badge]][travis_build_status]  [![Circle CI][cci_build_status_badge]][cci_build_status]  [![codecov][codecov_badge]][codecov_status]
+![Gem Version][gem_version_badge]  ![Downloads][gem_downloads]  [![Travis CI][travis_build_status_badge]][travis_build_status]  [![Circle CI][cci_build_status_badge]][cci_build_status]  [![codecov][codecov_badge]][codecov_status]
 
 A mixin providing (recursive) JSON serialization and pretty printing.
 
@@ -18,6 +18,13 @@ source 'https://rubygems.org'
 gem 'tidy_json'
 # ...
 ```
+
+### Formatting Options
+
+As of version [0.3.0][], most of the same options accepted by [`JSON.generate`][]
+can be passed to `#write_json`, `#to_tidy_json`, or `TidyJson.tidy`.
+
+See [the docs][] for a current list of options and their default values.
 
 ### Example
 
@@ -98,11 +105,16 @@ Distributed under the terms of the [MIT License][].
 
 
 [travis_build_status]: https://travis-ci.com/rdipardo/tidy_json
-[cci_build_status]: https://circleci.com/gh/rdipardo/tidy_json/tree/testing
+[cci_build_status]: https://circleci.com/gh/rdipardo/tidy_json/tree/master
 [cci_build_status_badge]: https://circleci.com/gh/rdipardo/tidy_json.svg?style=svg
-[travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=testing
-[codecov_status]: https://codecov.io/gh/rdipardo/tidy_json
-[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/testing/graph/badge.svg
+[travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=master
+[codecov_status]: https://codecov.io/gh/rdipardo/tidy_json/branch/master
+[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/master/graph/badge.svg
 [gem_version_badge]: https://img.shields.io/gem/v/tidy_json?color=%234ec820&label=gem%20version&logo=ruby&logoColor=%23e9573f
 [gem_downloads]: https://img.shields.io/gem/dt/tidy_json?logo=ruby&logoColor=%23e9573f
 [MIT License]: https://github.com/rdipardo/tidy_json/blob/master/LICENSE
+
+<!-- API spec -->
+[`JSON.generate`]: https://github.com/flori/json/blob/d49c5de49e54a5ad3f6fcf587f98d63266ef9439/lib/json/pure/generator.rb#L111
+[the docs]: https://rubydoc.org/github/rdipardo/tidy_json/TidyJson/Formatter#initialize-instance_method
+[0.3.0]: https://github.com/rdipardo/tidy_json/releases/tag/v0.3.0

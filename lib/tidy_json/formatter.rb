@@ -36,7 +36,7 @@ module TidyJson
     #   exception is thrown if these values are encountered.
     # @option opts [Boolean] :sort (false) Whether or not object members should
     #   be sorted by key.
-    # @see https://github.com/flori/json/blob/07c34048ff758c81be9d8b30f5d63084e5e9e072/lib/json/pure/generator.rb#L111 JSON::Pure::Generator
+    # @see https://github.com/flori/json/blob/d49c5de49e54a5ad3f6fcf587f98d63266ef9439/lib/json/pure/generator.rb#L111 JSON::Pure::Generator
     def initialize(opts = {})
       # The number of times to reduce the left indent of a nested array's
       # opening bracket
@@ -59,8 +59,8 @@ module TidyJson
         object_nl: opts[:object_nl] || "\n",
         array_nl: opts[:array_nl] || "\n",
         max_nesting: valid_depth ? opts[:max_nesting] : 100,
-        escape_slash: opts[:escape_slash] || false, # maybe useless ?
-        ascii_only: opts[:ascii_only] || false, # works!
+        escape_slash: opts[:escape_slash] || false,
+        ascii_only: opts[:ascii_only] || false,
         allow_nan: opts[:allow_nan] || false,
         sorted: opts[:sort] || false
       }
