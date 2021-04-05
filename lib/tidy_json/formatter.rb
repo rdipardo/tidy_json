@@ -14,16 +14,16 @@ module TidyJson
     # Returns a new instance of +Formatter+.
     #
     # @param opts [Hash] Formatting options.
-    # @option opts [[2,4,6,8,10,12]] :indent (2) An even number of spaces to
-    #   indent each object member.
-    # @option opts [[2..8]] :space_before (0) The number of spaces to put
-    #   before each +:+ delimiter.
-    # @option opts [[2..8]] :space (1) The number of spaces to put after
-    #   each +:+ delimiter.
-    # @option opts [String] :object_nl ("\n") A string to put at the end of
+    # @option opts [[2,4,6,8,10,12]] :indent (2) The number of spaces to indent
     #   each object member.
-    # @option opts [String] :array_nl ("\n") A string to put at the end of
-    #   each array member.
+    # @option opts [[1..8]] :space_before (0) The number of spaces to put after
+    #   property names.
+    # @option opts [[1..8]] :space (1) The number of spaces to put before
+    #   property values.
+    # @option opts [String] :object_nl ("\n") A string of whitespace to delimit
+    #   object members.
+    # @option opts [String] :array_nl ("\n") A string of whitespace to delimit
+    #   array elements.
     # @option opts [Numeric] :max_nesting (100) The maximum level of data
     #   structure nesting in the generated JSON. Disable depth checking by
     #   passing +max_nesting: 0+.
@@ -31,12 +31,12 @@ module TidyJson
     #   slash (/) should be escaped.
     # @option opts [Boolean] :ascii_only (false) Whether or not only ASCII
     #   characters should be generated.
-    # @option opts [Boolean] :allow_nan (false) Whether or not +NaN+,
-    #   +Infinity+ and +-Infinity+ should be generated. If +false+, an
-    #   exception is thrown if these values are encountered.
+    # @option opts [Boolean] :allow_nan (false) Whether or not to allow +NaN+,
+    #   +Infinity+ and +-Infinity+. If +false+, an exception is thrown if one
+    #   of these values is encountered.
     # @option opts [Boolean] :sort (false) Whether or not object members should
-    #   be sorted by key.
-    # @see https://github.com/flori/json/blob/d49c5de49e54a5ad3f6fcf587f98d63266ef9439/lib/json/pure/generator.rb#L111 JSON::Pure::Generator
+    #   be sorted by property name.
+    # @see https://github.com/flori/json/blob/b8c1c640cd375f2e2ccca1b18bf943f80ad04816/lib/json/pure/generator.rb#L111 JSON::Pure::Generator
     def initialize(opts = {})
       # The number of times to reduce the left indent of a nested array's
       # opening bracket
@@ -46,18 +46,19 @@ module TidyJson
       @need_offset = false
 
       valid_indent = (2..12).step(2).include?(opts[:indent])
-      valid_space_before = (2..8).include?(opts[:space_before])
-      valid_space_after = (2..8).include?(opts[:space])
+      valid_space_before = (1..8).include?(opts[:space_before])
+      valid_space_after = (1..8).include?(opts[:space])
       # don't test for the more explicit :integer? method because it's defined
       # for floating point numbers also
       valid_depth = opts[:max_nesting] >= 0 \
                     if opts[:max_nesting].respond_to?(:times)
+      valid_newline = ->(str) { str.respond_to?(:strip) && str.strip.empty? }
       @format = {
         indent: "\s" * (valid_indent ? opts[:indent] : 2),
         space_before: "\s" * (valid_space_before ? opts[:space_before] : 0),
         space: "\s" * (valid_space_after ? opts[:space] : 1),
-        object_nl: opts[:object_nl] || "\n",
-        array_nl: opts[:array_nl] || "\n",
+        object_nl: (valid_newline.call(opts[:object_nl]) ? opts[:object_nl] : "\n"),
+        array_nl: (valid_newline.call(opts[:array_nl]) ? opts[:array_nl] : "\n"),
         max_nesting: valid_depth ? opts[:max_nesting] : 100,
         escape_slash: opts[:escape_slash] || false,
         ascii_only: opts[:ascii_only] || false,

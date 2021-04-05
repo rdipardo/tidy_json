@@ -1,0 +1,128 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'optparse'
+require 'tidy_json'
+require_relative 'jtidy_info'
+
+class Jtidy # :nodoc:
+  OPTIONS = {
+    '-i [2,4,6,8,10,12]': [:indent, Integer, '--indent [2,4,6,8,10,12]',
+                           'The number of spaces to indent each object member [2]'],
+    '-p [1..8]': [:space_before, Integer, '--prop-name-space [1..8]',
+                  'The number of spaces to put after property names [0]'],
+    '-v [1..8]': [:space, Integer, '--value-space [1..8]',
+                  'The number of spaces to put before property values [1]'],
+    '-o D': [:object_nl, String, '--object-delim D',
+             'A string of whitespace to delimit object members [\n]'],
+    '-a D': [:array_nl, String, '--array-delim D',
+             'A string of whitespace to delimit array elements [\n]'],
+    '-m N': [:max_nesting, Integer, '--max-nesting N',
+             'The maximum level of data structure nesting in the generated ' \
+             'JSON; 0 == "no depth checking" [100]'],
+    '-e': [:escape_slash, nil, '--escape', 'Escape /\'s [false]'],
+    '-A': [:ascii_only, nil, '--ascii', 'Generate ASCII characters only [false]'],
+    '-N': [:allow_nan, nil, '--nan', 'Allow NaN, Infinity and -Infinity [false]'],
+    '-s': [:sort, nil, '--sort', 'Sort property names [false]'],
+    # script-only options
+    '-P': [:preview, nil, '--preview', 'Show preview of output [false]']
+  }.freeze
+
+  def self.unescape(str)
+    str.gsub(/\\b|\\h|\\n|\\r|\\s|\\t|\\v/,
+             {
+               '\\b': "\b",
+               '\\h': "\h",
+               '\\n': "\n",
+               '\\r': "\r",
+               '\\s': "\s",
+               '\\t': "\t",
+               '\\v': "\v"
+             })
+  end
+
+  def self.show_unused(opts)
+    return if opts.empty?
+
+    ignored = opts.keys.map do |key|
+      (OPTIONS.keys.select do |k|
+        OPTIONS[k][0].eql? key
+      end.first || '')[0..1]
+    end
+    warn "Ignoring options: #{(ignored.join ', ')}"
+  end
+
+  def self.parse(options)
+    format_options = {}
+    OptionParser.new do |opts|
+      opts.banner = \
+        "#{File.basename __FILE__} FILE[.json] " \
+        "#{(OPTIONS.keys.map { |k| "[#{k}]" }).join ' '}"
+      OPTIONS.each_key do |k|
+        opt, type, long_name, desc = OPTIONS[k]
+        opts.on(k, long_name, type, desc) do |v|
+          format_options[opt] = (type == String ? unescape(v) : v)
+        end
+      end
+
+      opts.on_tail('-V', '--version', 'Show version') do
+        show_unused format_options
+        puts ::JtidyInfo.new.to_s
+        exit 0
+      end
+
+      opts.on_tail('-h', '--help', 'Show this help message') do
+        show_unused format_options
+        puts opts
+        exit 0
+      end
+    end.parse! options
+
+    format_options
+  end
+
+  private_class_method :unescape, :show_unused
+end
+
+begin
+  begin
+    OPTS = Jtidy.parse(ARGV).freeze
+    INPUT_FILE = ARGV[0].freeze
+  rescue OptionParser::InvalidOption => e
+    warn e.message.capitalize
+    raise OptionParser::InvalidArgument
+  end
+
+  if !INPUT_FILE.nil? && !INPUT_FILE.empty?
+    tidy = ''
+    fname = INPUT_FILE.gsub('\\', '/')
+    ext = File.extname(fname)
+    input = File.join(
+      File.expand_path(File.dirname(fname)), File.basename(fname, ext)
+    )
+
+    begin
+      File.open((input + '.json').to_s, 'r') do |json|
+        begin
+          tidy = TidyJson.tidy(JSON.parse(json.read.strip), OPTS)
+        rescue JSON::JSONError => e
+          warn "#{__FILE__}.#{__LINE__}: #{e.message}"
+        end
+      end
+
+      if tidy.length.positive?
+        output = (input + '-tidy.json').to_s
+        File.open(output, 'w') { |fd| fd.write(tidy) }
+        puts "\nWrote: #{output}"
+        puts "#{tidy[0..1024]}\n . . ." if OPTS[:preview]
+      end
+    rescue Errno::ENOENT, Errno::EACCES, IOError => e
+      warn "#{__FILE__}.#{__LINE__}: #{e.message}"
+    end
+
+  else
+    Jtidy.parse %w[--help]
+  end
+rescue OptionParser::InvalidArgument, OptionParser::MissingArgument
+  Jtidy.parse %w[--help]
+end

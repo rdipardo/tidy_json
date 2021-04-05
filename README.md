@@ -100,20 +100,50 @@ puts my_jsonable.to_tidy_json(indent: 4, sort: true, space_before: 2, ascii_only
 # => nil
 ```
 
+### Command Line Usage
+
+After [installing the gem][], pass the name of a file containing JSON to `jtidy`
+(with or without a file extension). Run `jtidy -h` for a complete list of
+formatting options:
+
+```
+jtidy FILE[.json] [-i [2,4,6,8,10,12]] [-p [1..8]] [-v [1..8]] [-o D] [-a D] [-m N] [-e] [-A] [-N] [-s] [-P]
+    -i, --indent [2,4,6,8,10,12]     The number of spaces to indent each object member [2]
+    -p, --prop-name-space [1..8]     The number of spaces to put after property names [0]
+    -v, --value-space [1..8]         The number of spaces to put before property values [1]
+    -o, --object-delim D             A string of whitespace to delimit object members [\n]
+    -a, --array-delim D              A string of whitespace to delimit array elements [\n]
+    -m, --max-nesting N              The maximum level of data structure nesting in the generated JSON; 0 == "no depth checking" [100]
+    -e, --escape                     Escape /'s [false]
+    -A, --ascii                      Generate ASCII characters only [false]
+    -N, --nan                        Allow NaN, Infinity and -Infinity [false]
+    -s, --sort                       Sort property names [false]
+    -P, --preview                    Show preview of output [false]
+    -V, --version                    Show version
+    -h, --help                       Show this help message
+```
+
+### Notice
+The `jtidy` executable bundled with this gem is in no way affiliated with, nor based on,
+the HTML parser and pretty printer [of the same name](https://github.com/jtidy/jtidy).
+
+The JTidy source code and binaries are licensed under the terms of the Zlib-Libpng License.
+More information is available [here](https://github.com/jtidy/jtidy/blob/master/LICENSE.txt).
+
 ### License
 Distributed under the terms of the [MIT License][].
 
 
 [travis_build_status]: https://travis-ci.com/rdipardo/tidy_json
-[cci_build_status]: https://circleci.com/gh/rdipardo/tidy_json/tree/master
+[cci_build_status]: https://circleci.com/gh/rdipardo/tidy_json/tree/testing
 [cci_build_status_badge]: https://circleci.com/gh/rdipardo/tidy_json.svg?style=svg
-[travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=master
-[codecov_status]: https://codecov.io/gh/rdipardo/tidy_json/branch/master
-[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/master/graph/badge.svg
+[travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=testing
+[codecov_status]: https://codecov.io/gh/rdipardo/tidy_json/branch/testing
+[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/testing/graph/badge.svg
 [gem_version_badge]: https://img.shields.io/gem/v/tidy_json?color=%234ec820&label=gem%20version&logo=ruby&logoColor=%23e9573f
 [gem_downloads]: https://img.shields.io/gem/dt/tidy_json?logo=ruby&logoColor=%23e9573f
 [MIT License]: https://github.com/rdipardo/tidy_json/blob/master/LICENSE
-
+[installing the gem]: https://github.com/rdipardo/tidy_json#installation
 <!-- API spec -->
 [`JSON.generate`]: https://github.com/flori/json/blob/d49c5de49e54a5ad3f6fcf587f98d63266ef9439/lib/json/pure/generator.rb#L111
 [the docs]: https://rubydoc.org/github/rdipardo/tidy_json/TidyJson/Formatter#initialize-instance_method
