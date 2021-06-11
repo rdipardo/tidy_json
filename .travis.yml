@@ -1,6 +1,6 @@
 language: ruby
 os: linux
-dist: focal
+dist: bionic
 cache: bundler
 before_install:
   gem update bundler
@@ -8,7 +8,6 @@ install:
   - bundle config set path 'vendor/bundle'
   - bundle install --jobs=3 --retry=3
 rvm:
-  - 2.3
   - 2.4
   - 2.5
   - 2.6
@@ -17,4 +16,17 @@ rvm:
 env:
   - COVERAGE=1
 jobs:
+  include:
+      - rvm: ruby-head
+        before_install:
+          - sudo apt purge libssl-dev
+          - sudo apt -qq update
+          - sudo apt -qqy install libssl1.0-dev
+          - rvm use 2.3 --install --binary --fuzzy
+          - gem update bundler
+        install:
+          - bundle config set path 'vendor/bundle'
+          - bundle install --jobs=3 --retry=3
+        script:
+          bundle exec rake
   fast_finish: true
