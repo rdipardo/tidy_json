@@ -1,6 +1,6 @@
 branches:
-  only:
-    - /^v(\d*\.)+\d*$/
+  except:
+    - /^.*$/
 language: ruby
 os: linux
 dist: bionic
