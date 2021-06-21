@@ -71,18 +71,42 @@ workflows:
       - rb23:
           context:
             - docker-hub-creds
+          filters:
+            branches:
+              only:
+                - /^v(\d*\.)+\d*$/
       - rb24:
           context:
             - docker-hub-creds
+          filters:
+            branches:
+              only:
+                - /^v(\d*\.)+\d*$/
       - rb25:
           context:
             - docker-hub-creds
+          filters:
+            branches:
+              only:
+                - /^v(\d*\.)+\d*$/
       - rb26:
           context:
             - docker-hub-creds
+          filters:
+            branches:
+              only:
+                - /^v(\d*\.)+\d*$/
       - rb27:
           context:
             - docker-hub-creds
+          filters:
+            branches:
+              only:
+                - /^v(\d*\.)+\d*$/
       - rb30:
           context:
             - docker-hub-creds
+          filters:
+            branches:
+              only:
+                - /^v(\d*\.)+\d*$/
