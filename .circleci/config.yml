@@ -21,48 +21,48 @@ references:
               COVERAGE: 1
             command: bundle exec rake
 
+  releases-only: &releases-only
+    filters:
+      tags:
+        only: /^v(\d*\.)+\d*$/
+      branches:
+        ignore: /.*/
+
+  docker-login: &docker-login
+    auth:
+      username: $DOCKERHUB_USER
+      password: $DOCKERHUB_PASSWORD
+
 jobs:
   rb23:
     docker:
       - image: circleci/ruby:2.3-stretch
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASSWORD
+        <<: *docker-login
     <<: *default
   rb24:
     docker:
       - image: circleci/ruby:2.4-buster
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASSWORD
+        <<: *docker-login
     <<: *default
   rb25:
     docker:
       - image: circleci/ruby:2.5-buster
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASSWORD
+        <<: *docker-login
     <<: *default
   rb26:
     docker:
       - image: circleci/ruby:2.6-buster
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASSWORD
+        <<: *docker-login
     <<: *default
   rb27:
     docker:
       - image: circleci/ruby:2.7-buster
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASSWORD
+        <<: *docker-login
     <<: *default
   rb30:
     docker:
       - image: circleci/ruby:3.0-buster
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASSWORD
+        <<: *docker-login
     <<: *default
 
 workflows:
@@ -71,18 +71,24 @@ workflows:
       - rb23:
           context:
             - docker-hub-creds
+          <<: *releases-only
       - rb24:
           context:
             - docker-hub-creds
+          <<: *releases-only
       - rb25:
           context:
             - docker-hub-creds
+          <<: *releases-only
       - rb26:
           context:
             - docker-hub-creds
+          <<: *releases-only
       - rb27:
           context:
             - docker-hub-creds
+          <<: *releases-only
       - rb30:
           context:
             - docker-hub-creds
+          <<: *releases-only
