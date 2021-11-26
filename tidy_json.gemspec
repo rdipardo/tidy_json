@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
     'bug_tracker_uri' => 'https://github.com/rdipardo/tidy_json/issues'
   }
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    ['.yardopts'].concat(`git ls-files -z`.split("\x0").reject { |f| f.match(/^(\.[\w+\.]+|test|spec|features)/) })
+    ['.yardopts'].concat(`git ls-files -z`.split("\x0").reject { |f| f.match(/^(\.[\w+\.]+|test|spec|features|codecov)/) })
   end
   spec.test_files = Dir['test/*']
   spec.require_paths = ['lib']

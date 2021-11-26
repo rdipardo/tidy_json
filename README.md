@@ -135,11 +135,11 @@ Distributed under the terms of the [MIT License][].
 
 
 [travis_build_status]: https://travis-ci.com/rdipardo/tidy_json
-[cci_build_status]: https://circleci.com/gh/rdipardo/tidy_json/tree/testing
+[cci_build_status]: https://circleci.com/gh/rdipardo/tidy_json/tree/master
 [cci_build_status_badge]: https://circleci.com/gh/rdipardo/tidy_json.svg?style=svg
-[travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=testing
-[codecov_status]: https://codecov.io/gh/rdipardo/tidy_json/branch/testing
-[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/testing/graph/badge.svg
+[travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=master
+[codecov_status]: https://codecov.io/gh/rdipardo/tidy_json/branch/master
+[codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/master/graph/badge.svg
 [gem_version_badge]: https://img.shields.io/gem/v/tidy_json?color=%234ec820&label=gem%20version&logo=ruby&logoColor=%23e9573f
 [gem_downloads]: https://img.shields.io/gem/dt/tidy_json?logo=ruby&logoColor=%23e9573f
 [MIT License]: https://github.com/rdipardo/tidy_json/blob/master/LICENSE
