@@ -7,8 +7,8 @@ if ENV['COVERAGE']
     SimpleCov.command_name 'Unit Tests'
 
     if ENV['CI']
-      require 'codecov'
-      SimpleCov.formatter = SimpleCov::Formatter::Codecov
+      require 'simplecov-cobertura'
+      SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
     end
   rescue LoadError
     warn "Can't locate coverage drivers! Try running: `bundle install` first."
