@@ -1,6 +1,6 @@
 # tidy_json
 
-![Gem Version][gem_version_badge]  ![Downloads][gem_downloads]  [![Travis CI][travis_build_status_badge]][travis_build_status]  [![Circle CI][cci_build_status_badge]][cci_build_status]  [![codecov][codecov_badge]][codecov_status]
+![Gem Version][gem_version_badge]  ![Downloads][gem_downloads]  [![Travis CI][travis_build_status_badge]][travis_build_status]  [![codecov][codecov_badge]][codecov_status]
 
 A mixin providing (recursive) JSON serialization and pretty printing.
 
@@ -134,10 +134,8 @@ More information is available [here](https://github.com/jtidy/jtidy/blob/master/
 Distributed under the terms of the [MIT License][].
 
 
-[travis_build_status]: https://travis-ci.com/rdipardo/tidy_json
-[cci_build_status]: https://circleci.com/gh/rdipardo/tidy_json/tree/master
-[cci_build_status_badge]: https://circleci.com/gh/rdipardo/tidy_json.svg?style=svg
-[travis_build_status_badge]: https://travis-ci.com/rdipardo/tidy_json.svg?branch=master
+[travis_build_status]: https://app.travis-ci.com/github/rdipardo/tidy_json
+[travis_build_status_badge]: https://app.travis-ci.com/rdipardo/tidy_json.svg?branch=master
 [codecov_status]: https://codecov.io/gh/rdipardo/tidy_json/branch/master
 [codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/master/graph/badge.svg
 [gem_version_badge]: https://img.shields.io/gem/v/tidy_json?color=%234ec820&label=gem%20version&logo=ruby&logoColor=%23e9573f
