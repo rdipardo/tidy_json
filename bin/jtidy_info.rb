@@ -20,9 +20,9 @@ module TidyJson # :nodoc:
     def initialize
       gem = Gem::Specification.find_by_name('tidy_json')
       @meta = {
-        name: "jtidy #{gem.version}",
-        license: "License: #{gem.license}",
-        bugs: "Bugs: #{gem.metadata['bug_tracker_uri']}",
+        name: "# jtidy #{gem.version}",
+        license: "# License: #{gem.license}",
+        bugs: "# Bugs: #{gem.metadata['bug_tracker_uri']}",
         notice: NOTICE
       }
     end

@@ -7,6 +7,7 @@ require_relative 'jtidy_info'
 
 class Jtidy # :nodoc:
   OPTIONS = {
+    '-d out[.json]': [:dest, String, '--dest', 'Name of output file'],
     '-i [2,4,6,8,10,12]': [:indent, Integer, '--indent [2,4,6,8,10,12]',
                            'The number of spaces to indent each object member [2]'],
     '-p [1..8]': [:space_before, Integer, '--prop-name-space [1..8]',
@@ -24,6 +25,7 @@ class Jtidy # :nodoc:
     '-A': [:ascii_only, nil, '--ascii', 'Generate ASCII characters only [false]'],
     '-N': [:allow_nan, nil, '--nan', 'Allow NaN, Infinity and -Infinity [false]'],
     '-s': [:sort, nil, '--sort', 'Sort property names [false]'],
+    '-f': [:force, nil, '--force', 'Overwrite source file [false]'],
     # script-only options
     '-P': [:preview, nil, '--preview', 'Show preview of output [false]']
   }.freeze
@@ -93,16 +95,23 @@ begin
     raise OptionParser::InvalidArgument
   end
 
-  if !INPUT_FILE.nil? && !INPUT_FILE.empty?
+  if !(INPUT_FILE.nil? || INPUT_FILE.strip.empty?)
     tidy = ''
-    fname = INPUT_FILE.gsub('\\', '/')
+    fname = INPUT_FILE.strip.gsub('\\', '/')
     ext = File.extname(fname)
     input = File.join(
       File.expand_path(File.dirname(fname)), File.basename(fname, ext)
-    )
+    ).to_s
+    outfile = unless OPTS[:dest].nil? || OPTS[:dest].strip.empty?
+                fname = OPTS[:dest].strip.gsub('\\', '/')
+                ext = File.extname(fname)
+                File.join(
+                  File.expand_path(File.dirname(fname)), File.basename(fname, ext)
+                ).to_s
+              end
 
     begin
-      File.open((input + '.json').to_s, 'r') do |json|
+      File.open((input + '.json'), 'r') do |json|
         begin
           tidy = TidyJson.tidy(JSON.parse(json.read.strip), OPTS)
         rescue JSON::JSONError => e
@@ -111,7 +120,13 @@ begin
       end
 
       if tidy.length.positive?
-        output = (input + '-tidy.json').to_s
+        output = (if OPTS[:force]
+                    outfile.nil? ? input : outfile
+                  elsif Regexp.new("(#{outfile})", Regexp::IGNORECASE) =~ input
+                    warn "Can't overwrite #{input}.json without '--force' option"
+                    "#{input}-tidy"
+                  else outfile
+                  end) + '.json'
         File.open(output, 'w') { |fd| fd.write(tidy) }
         puts "\nWrote: #{output}"
         puts "#{tidy[0..1024]}\n . . ." if OPTS[:preview]
