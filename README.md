@@ -107,7 +107,8 @@ After [installing the gem][], pass the name of a file containing JSON to `jtidy`
 formatting options:
 
 ```
-jtidy FILE[.json] [-i [2,4,6,8,10,12]] [-p [1..8]] [-v [1..8]] [-o D] [-a D] [-m N] [-e] [-A] [-N] [-s] [-P]
+jtidy FILE[.json] [-d out[.json]] [-i [2,4,6,8,10,12]] [-p [1..8]] [-v [1..8]] [-o D] [-a D] [-m N] [-e] [-A] [-N] [-s] [-f] [-P]
+    -d, --dest out[.json]            Name of output file
     -i, --indent [2,4,6,8,10,12]     The number of spaces to indent each object member [2]
     -p, --prop-name-space [1..8]     The number of spaces to put after property names [0]
     -v, --value-space [1..8]         The number of spaces to put before property values [1]
@@ -118,6 +119,7 @@ jtidy FILE[.json] [-i [2,4,6,8,10,12]] [-p [1..8]] [-v [1..8]] [-o D] [-a D] [-m
     -A, --ascii                      Generate ASCII characters only [false]
     -N, --nan                        Allow NaN, Infinity and -Infinity [false]
     -s, --sort                       Sort property names [false]
+    -f, --force                      Overwrite source file [false]
     -P, --preview                    Show preview of output [false]
     -V, --version                    Show version
     -h, --help                       Show this help message
