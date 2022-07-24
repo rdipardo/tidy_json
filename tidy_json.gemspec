@@ -6,7 +6,6 @@ require_relative 'lib/tidy_json/dedication'
 Gem::Specification.new do |spec|
   spec.name        = 'tidy_json'
   spec.version     = TidyJson::VERSION
-  spec.date        = Time.now.to_s[0..9]
   spec.summary     = 'Serialize any Ruby object as readable JSON'
   spec.description = 'A mixin providing (recursive) JSON serialization and pretty printing.'
   spec.authors     = ['Robert Di Pardo']
@@ -18,7 +17,7 @@ Gem::Specification.new do |spec|
     'bug_tracker_uri' => 'https://github.com/rdipardo/tidy_json/issues'
   }
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    ['.yardopts'].concat(`git ls-files -z`.split("\x0").reject { |f| f.match(/^(\.[\w+\.]+|test|spec|features|codecov)/) })
+    ['.yardopts'].concat(`git ls-files -z`.split("\x0").reject { |f| f.match(/^(\.[\w+.]+|test|spec|features|codecov)/) })
   end
   spec.test_files = Dir['test/*']
   spec.require_paths = ['lib']

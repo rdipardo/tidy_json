@@ -15,7 +15,7 @@ module TidyJson
     # @return [{String => #to_s}] A hash mapping of +obj+'s visible attributes.
     def self.serialize(obj, json_hash)
       obj.instance_variables.each do |m|
-        key = m.to_s[/[^\@]\w*/].to_sym
+        key = m.to_s[/[^@]\w*/].to_sym
 
         next unless key && !key.eql?('')
 
@@ -28,24 +28,10 @@ module TidyJson
         begin
           # process class members of Hash type
           if val.instance_of?(Hash)
-            nested_key = ''
-            nested = nil
-
-            val.each.any? do |k, v|
-              unless v.instance_variables.empty?
-                nested_key = k
-                nested = v
-              end
-            end
-
             json_hash[key] = val
 
-            if nested
-              pos = val.keys.select { |k| k === nested_key }.first.to_sym
-              nested.instance_variables.each do
-                json_hash[key][pos] = serialize(nested,
-                                                class: nested.class.name)
-              end
+            val.each.any? do |k, v|
+              json_hash[key][k.to_sym] = serialize(v, class: v.class.name) unless v.instance_variables.empty?
             end
 
           # process class members of Array type

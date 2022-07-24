@@ -51,7 +51,7 @@ class Jtidy # :nodoc:
         OPTIONS[k][0].eql? key
       end.first || '')[0..1]
     end
-    warn "Ignoring options: #{(ignored.join ', ')}"
+    warn "Ignoring options: #{ignored.join ', '}"
   end
 
   def self.parse(options)
@@ -95,7 +95,10 @@ begin
     raise OptionParser::InvalidArgument
   end
 
-  if !(INPUT_FILE.nil? || INPUT_FILE.strip.empty?)
+  if INPUT_FILE.nil? || INPUT_FILE.strip.empty?
+    Jtidy.parse %w[--help]
+
+  else
     tidy = ''
     fname = INPUT_FILE.strip.gsub('\\', '/')
     ext = File.extname(fname)
@@ -111,7 +114,7 @@ begin
               end
 
     begin
-      File.open((input + '.json'), 'r') do |json|
+      File.open("#{input}.json", 'r') do |json|
         begin
           tidy = TidyJson.tidy(JSON.parse(json.read.strip), OPTS)
         rescue JSON::JSONError => e
@@ -134,9 +137,6 @@ begin
     rescue Errno::ENOENT, Errno::EACCES, IOError => e
       warn "#{__FILE__}.#{__LINE__}: #{e.message}"
     end
-
-  else
-    Jtidy.parse %w[--help]
   end
 rescue OptionParser::InvalidArgument, OptionParser::MissingArgument
   Jtidy.parse %w[--help]

@@ -171,8 +171,8 @@ module TidyJson
       end
 
       trim str.gsub(/(#{indent})+[\n\r]+/, '')
-              .gsub(/\}\,+/, '},')
-              .gsub(/\]\,+/, '],')
+              .gsub(/\},+/, '},')
+              .gsub(/\],+/, '],')
     end
     # ~Formatter#format_node
 
@@ -210,7 +210,7 @@ module TidyJson
 
       elsif !node.instance_of?(String) then graft << node.to_s
 
-      else graft << "\"#{node.gsub(/\"/, '\\"')}\""
+      else graft << "\"#{node.gsub(/"/, '\\"')}\""
       end
 
       graft.strip
@@ -223,7 +223,7 @@ module TidyJson
     # @param node [String] A serialized object member.
     # @return [String] A copy of +node+ without a trailing comma.
     def trim(node)
-      if (extra_comma = /(?<trail>,\s*[\]\}]\s*)$/.match(node))
+      if (extra_comma = /(?<trail>,\s*[\]}]\s*)$/.match(node))
         node.sub(extra_comma[:trail],
                  extra_comma[:trail]
                  .slice(1, node.length.pred)
