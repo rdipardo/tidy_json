@@ -7,12 +7,90 @@ module TidyJson
   # @api private
   class Serializer
     ##
-    # Searches +obj+ to a maximum depth of 2 for readable attributes, storing
-    # them as key-value pairs in +json_hash+.
+    # Searches +obj+ for readable attributes, storing them as key-value pairs in
+    # +json_hash+.
     #
     # @param obj [Object] A Ruby object that can be parsed as JSON.
     # @param json_hash [{String,Symbol => #to_s}] Accumulator.
     # @return [{String => #to_s}] A hash mapping of +obj+'s visible attributes.
+    # @note Hashes will be searched for nested objects to a maximum depth of 2;
+    #   arrays to a maximum depth of 3.
+    # @example
+    #   class Obj
+    #     class Child
+    #       def initialize; @a = { a: 1 } end
+    #        attr_reader :a
+    #     end
+    #     def initialize; @a = { b: Child.new } end
+    #     attr_accessor :a
+    #   end
+    #
+    #   o = Obj.new
+    #   puts o.to_tidy_json
+    #   <<JSON
+    #   {
+    #      "class": "Obj",
+    #      "a": {
+    #         "b": {
+    #           "class": "Obj::Child",
+    #            "a": {
+    #              "a": 1
+    #          }
+    #        }
+    #      }
+    #   }
+    #   JSON
+    #
+    #   # depth > 2: unreachable objects are not serialized
+    #   o.a = { b: { c: { d: Obj::Child.new } } }
+    #   puts o.to_tidy_json
+    #   <<JSON
+    #   {
+    #      "class": "Obj",
+    #      "a": {
+    #         "b": {
+    #           "c": {
+    #             "d": "#<Obj::Child:0x0000559d4da865c0>"
+    #          }
+    #        }
+    #      }
+    #   }
+    #   JSON
+    #
+    #   # object arrays can be nested up to 3 levels deep
+    #   o.a = [ [ Obj::Child.new, [ Obj::Child.new, [ Obj::Child.new ] ] ] ]
+    #   puts o.to_tidy_json
+    #   <<JSON
+    #   {
+    #     "class": "Obj",
+    #     "a": [
+    #       {
+    #         "class": "Obj::Child",
+    #         "a": {
+    #           "a": 1
+    #         }
+    #       },
+    #       [
+    #         [
+    #           {
+    #             "class": "Obj::Child",
+    #             "a": {
+    #               "a": 1
+    #             }
+    #           },
+    #           [
+    #             {
+    #               "class": "Obj::Child",
+    #               "a": {
+    #                 "a": 1
+    #               }
+    #             }
+    #           ]
+    #         ]
+    #       ]
+    #     ]
+    #   }
+    #   JSON
     def self.serialize(obj, json_hash)
       obj.instance_variables.each do |m|
         key = m.to_s[/[^@]\w*/].to_sym
@@ -61,6 +139,11 @@ module TidyJson
                   elsif e.respond_to?(:each)
                     temp = []
                     e.each do |el|
+                      if el.respond_to?(:each)
+                        el.each_with_index do |ell, idx|
+                          el[idx] = serialize(ell, class: ell.class.name) unless ell.instance_variables.empty?
+                        end
+                      end
                       temp << if el.instance_variables.empty? then el
                               else JSON.parse(el.stringify)
                               end

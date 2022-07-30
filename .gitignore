@@ -12,5 +12,4 @@
 *.lock
 *.gem
 *.json
-!test/**.json
 .rubocop.yml

@@ -11,11 +11,11 @@ class Nested
   attr_accessor :a, :b, :c, :d, :e
 
   def initialize
-    @a = [[], [[5, 6, 7]], [1, 2, { 'three': 3, 'four': [5, 6] }, [4]], { 'inner': 1 }]
-    @b = { 'a': [5], 'b': [1, 2, 3, [4]], 'c': [5], 'd': { 'inner': 1 }, 'e': [6] }
-    @c = [[1, 2, 3, [4]], { 'inner': 1 }, {}]
-    @d = [{}, [], [1, 2, 3, [4]], { 'inner': 1 }, []]
-    @e = [[1, 2, 3, [4]], { 'inner': 1 }, {}]
+    @a = [[], [[5, 6, 7]], [1, 2, { three: 3, four: [5, 6] }, [4]], { inner: 1 }]
+    @b = { a: [5], b: [1, 2, 3, [4]], c: [5], d: { inner: 1 }, e: [6] }
+    @c = [[1, 2, 3, [4]], { inner: 1 }, {}]
+    @d = [{}, [], [1, 2, 3, [4]], { inner: 1 }, []]
+    @e = [[1, 2, 3, [4]], { inner: 1 }, {}]
   end
 end
 
@@ -25,8 +25,8 @@ class JsonableObject
   def initialize
     @h = { one: 'uno', two: 'dos', three: %w[eine zwei drei], cuatro: ['I', 'II', 'III', ['i.', 'ii.', 'iii.', 'iv.']] }
     @a = ['k', 'l', %w[M N O P], 'q', 'r', 's', [10, 456, ['<abbr title="Reel 2, Dialog Track 2">R2D2</abbr>', 'R', 2, 'D', ['two']]], 'u', 'v', 'x', 'y', %w[Z AB]]
-    @b = [{ 'uno': Nested.new }, [Nested.new, [Nested.new, Nested.new], [Nested.new]]]
-    @c = [[Nested.new, [Nested.new], [Nested.new]]]
+    @b = [{ uno: Nested.new }, [Nested.new, [[Nested.new], Nested.new, Nested.new], [Nested.new]]]
+    @c = [[Nested.new, [Nested.new, [Nested.new]], [Nested.new]]]
     @d = []
     @f = {}
   end
@@ -64,13 +64,13 @@ class TidyJsonTest < Test::Unit::TestCase
     assert_equal([{ a: 1 }, { b: 2 }, { c: 3, d: { a: 9, f: 56, i: '34', ii: '35' } }],
                  TidyJson.sort_keys(hash_array))
     assert_equal({ a: 'one', b: 'two', c: 3 },
-                 TidyJson.sort_keys('b': 'two', 'c': 3, 'a': 'one'))
+                 TidyJson.sort_keys(b: 'two', c: 3, a: 'one'))
     assert_equal([], TidyJson.sort_keys([]), 'return empty arrays unchanged')
     assert_equal({}, TidyJson.sort_keys({}), 'return empty hashes unchanged')
     assert_equal([3, 2, 1], TidyJson.sort_keys([3, 2, 1]),
                  'return arrays of keyless objects unchanged')
     assert_equal([{ b: 'two' }, 'one'],
-                 TidyJson.sort_keys([{ 'b': 'two' }, 'one']),
+                 TidyJson.sort_keys([{ b: 'two' }, 'one']),
                  'arrays with any keyless objects should be returned unchanged')
   end
 
@@ -82,25 +82,29 @@ class TidyJsonTest < Test::Unit::TestCase
     assert_equal("[\n        {\n                \"a\": 1\n        },\n        {\n                \"b\": 2\n        },\n        {\n                \"c\": 3,\n                \"d\": {\n                        \"a\": 9,\n                        \"f\": 56,\n                        \"i\": \"34\",\n                        \"ii\": \"35\"\n                }\n        }\n]\n",
                  nested_hash_array.to_tidy_json(indent: 8, sort: true))
     assert_equal("{\n      \"a\": \"one\",\n      \"b\": \"two\",\n      \"c\": 3\n}\n",
-                 { 'b': 'two', 'c': 3, 'a': 'one' }.to_tidy_json(indent: 6, sort: true))
+                 { b: 'two', c: 3, a: 'one' }.to_tidy_json(indent: 6, sort: true))
     assert_equal("[]\n", [].to_tidy_json(sort: true))
     assert_equal("{}\n", {}.to_tidy_json(sort: true))
     assert_equal("[\n        3,\n        2,\n        1\n]\n",
                  [3, 2, 1].to_tidy_json(indent: 8, sort: true))
     assert_equal("[\n    {\n        \"b\": \"two\"\n    },\n    \"one\"\n]\n",
-                 [{ 'b': 'two' }, 'one'].to_tidy_json(indent: 4, sort: true))
+                 [{ b: 'two' }, 'one'].to_tidy_json(indent: 4, sort: true))
   end
 
   def test_tidy_instance
     assert_equal({}.to_tidy_json, "{}\n")
     assert_equal([].to_tidy_json, "[]\n")
     assert_equal(String.new.to_tidy_json, "\"\"\n")
-    assert_equal(JsonableObject.new.to_tidy_json.length, 13_410)
+    assert_equal(JsonableObject.new.to_tidy_json.length, 17_774)
   end
 
   def test_stringify_instance
-    File.open("#{__dir__}/JsonableObject.json", 'r') do |json|
-      assert_equal(@t.stringify, json.read.strip)
+    output = @t.write_json(File.join(__dir__, @t.class.name))
+    assert(File.exist?(output))
+    File.open(output, 'r:UTF-8') do |json|
+      text = json.read.strip
+      assert_equal(@t.stringify, text)
+      assert_no_match(/(#<Nested:0x)[a-z0-9]+>/, text, 'Some objects were not serialized!')
     end
   rescue Errno::ENOENT, Errno::EACCES, IOError => e
     flunk "#{__FILE__}.#{__LINE__}: #{e.message}"
@@ -132,7 +136,7 @@ class TidyJsonTest < Test::Unit::TestCase
 
   def test_indent_bounds_checking
     assert_equal("{\n  \"a\": \"one\",\n  \"b\": \"two\",\n  \"c\": 3\n}\n",
-                 { 'b': 'two', 'c': 3, 'a': 'one' }.to_tidy_json(indent: 5, sort: true),
+                 { b: 'two', c: 3, a: 'one' }.to_tidy_json(indent: 5, sort: true),
                  'odd values should fall back to default of 2')
     assert_equal([].to_tidy_json(indent: '16'), "[]\n",
                  'values > 12 should fall back to default of 2')
