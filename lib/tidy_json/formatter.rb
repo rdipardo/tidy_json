@@ -80,10 +80,8 @@ module TidyJson
       indent = @format[:indent]
 
       is_last = (obj.length <= 1) ||
-                (obj.length > 1 &&
-                  (obj.instance_of?(Array) &&
-                    !(node === obj.first) &&
-                      (obj.size.pred == obj.rindex(node))))
+                (obj.instance_of?(Array) &&
+                  (obj.size.pred == obj.rindex(node)))
 
       if node.instance_of?(Array)
         str << '['
@@ -132,12 +130,7 @@ module TidyJson
         node.each_with_index do |h, idx|
           # format values which are hashes themselves
           if h.last.instance_of?(Hash)
-            key = if h.first.eql? ''
-                    "#{indent * 2}\"<##{h.last.class.name.downcase}>\": "
-                  else
-                    "#{indent * 2}\"#{h.first}\": "
-                  end
-
+            key = "#{indent * 2}\"#{h.first || "<##{h.last.class.name.downcase}>"}\": "
             str << key << '{'
             str << "\n" unless h.last.empty?
 
