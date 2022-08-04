@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'lib/tidy_json/version'
-require_relative 'lib/tidy_json/dedication'
 
 Gem::Specification.new do |spec|
   spec.name        = 'tidy_json'
@@ -27,5 +26,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'test-unit', '~> 3.4'
   spec.add_development_dependency 'yard', '~> 0.9'
   spec.rdoc_options = ['-x test/*']
-  spec.post_install_message = TidyJson::DEDICATION
 end

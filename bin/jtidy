@@ -130,7 +130,7 @@ begin
                     "#{input}-tidy"
                   else outfile
                   end) + '.json'
-        File.open(output, 'w') { |fd| fd.write(tidy) }
+        File.write(output, tidy)
         puts "\nWrote: #{output}"
         puts "#{tidy[0..1024]}\n . . ." if OPTS[:preview]
       end

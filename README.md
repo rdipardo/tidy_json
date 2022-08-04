@@ -130,7 +130,7 @@ The `jtidy` executable bundled with this gem is in no way affiliated with, nor b
 the HTML parser and pretty printer [of the same name](https://github.com/jtidy/jtidy).
 
 The JTidy source code and binaries are licensed under the terms of the Zlib-Libpng License.
-More information is available [here](https://github.com/jtidy/jtidy/blob/master/LICENSE.txt).
+More information is available [here](https://raw.githubusercontent.com/jtidy/jtidy/master/LICENSE.txt).
 
 ### License
 Distributed under the terms of the [MIT License][].
@@ -142,7 +142,7 @@ Distributed under the terms of the [MIT License][].
 [codecov_badge]: https://codecov.io/gh/rdipardo/tidy_json/branch/master/graph/badge.svg
 [gem_version_badge]: https://img.shields.io/gem/v/tidy_json?color=%234ec820&label=gem%20version&logo=ruby&logoColor=%23e9573f
 [gem_downloads]: https://img.shields.io/gem/dt/tidy_json?logo=ruby&logoColor=%23e9573f
-[MIT License]: https://github.com/rdipardo/tidy_json/blob/master/LICENSE
+[MIT License]: https://raw.githubusercontent.com/rdipardo/tidy_json/master/LICENSE
 [installing the gem]: https://github.com/rdipardo/tidy_json#installation
 <!-- API spec -->
 [`JSON.generate`]: https://github.com/flori/json/blob/d49c5de49e54a5ad3f6fcf587f98d63266ef9439/lib/json/pure/generator.rb#L111

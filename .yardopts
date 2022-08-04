@@ -1,3 +1,2 @@
---exclude lib/tidy_json/dedication.rb
 --private lib/**/*.rb
 --files README.md,LICENSE

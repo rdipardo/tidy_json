@@ -1,17 +1,14 @@
 # frozen_string_literal: true
 
-module TidyJson # :nodoc:
-  class JtidyInfo
+module TidyJson
+  class JtidyInfo # :nodoc:
     NOTICE = [
       '#',
       '# jtidy is in no way affiliated with, nor based on, ',
       '# the HTML parser and pretty printer of the same name.',
       '#',
-      '# The JTidy source code and binaries are licensed under',
-      '# the terms of the Zlib-Libpng License.',
-      '#',
       '# More information is available here:',
-      '# https://github.com/jtidy/jtidy/blob/master/LICENSE.txt',
+      '# https://github.com/rdipardo/tidy_json#command-line-usage',
       '#'
     ].join("\n").freeze
 
