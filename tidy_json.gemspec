@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.homepage    = 'https://github.com/rdipardo/tidy_json'
   spec.license     = 'MIT'
   spec.metadata    = {
-    'documentation_uri' => 'https://rubydoc.org/github/rdipardo/tidy_json',
+    'documentation_uri' => 'https://rubydoc.info/github/rdipardo/tidy_json',
     'bug_tracker_uri' => 'https://github.com/rdipardo/tidy_json/issues'
   }
   spec.files = Dir.chdir(File.expand_path(__dir__)) do

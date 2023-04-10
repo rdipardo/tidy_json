@@ -146,5 +146,5 @@ Distributed under the terms of the [MIT License][].
 [installing the gem]: https://github.com/rdipardo/tidy_json#installation
 <!-- API spec -->
 [`JSON.generate`]: https://github.com/flori/json/blob/d49c5de49e54a5ad3f6fcf587f98d63266ef9439/lib/json/pure/generator.rb#L111
-[the docs]: https://rubydoc.org/github/rdipardo/tidy_json/TidyJson/Formatter#initialize-instance_method
+[the docs]: https://rubydoc.info/github/rdipardo/tidy_json/TidyJson/Formatter#initialize-instance_method
 [0.3.0]: https://github.com/rdipardo/tidy_json/releases/tag/v0.3.0
