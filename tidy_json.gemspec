@@ -22,8 +22,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.executables = ['jtidy']
   spec.required_ruby_version = Gem::Requirement.new('>= 2.3')
-  spec.add_runtime_dependency 'json', '~> 2.5'
-  spec.add_development_dependency 'test-unit', '~> 3.4'
-  spec.add_development_dependency 'yard', '~> 0.9'
+  spec.add_runtime_dependency 'json', '~> 2.6'
   spec.rdoc_options = ['-x test/*']
 end

@@ -6,6 +6,8 @@ gemspec
 
 group :test do
   gem 'rake'
+  gem 'test-unit', '~> 3.4'
+  gem 'yard', '~> 0.9'
 end
 
 group :development do

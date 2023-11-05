@@ -69,7 +69,7 @@ class Jtidy # :nodoc:
 
       opts.on_tail('-V', '--version', 'Show version') do
         show_unused format_options
-        puts ::JtidyInfo.new.to_s
+        puts ::JtidyInfo.new
         exit 0
       end
 

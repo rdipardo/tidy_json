@@ -203,7 +203,7 @@ module TidyJson
 
       elsif !node.instance_of?(String) then graft << node.to_s
 
-      else graft << "\"#{node.gsub(/"/, '\\"')}\""
+      else graft << "\"#{node.gsub('"', '\\"')}\""
       end
 
       graft.strip
